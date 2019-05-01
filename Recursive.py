@@ -9,7 +9,6 @@ import math
 from PIL import ImageGrab
 from tkinter import messagebox
 import numpy as np
-import pyautogui
 # from Helper import Timer
 from Helper import get_connector, get_arc_properties, MyThread, recording_video
 import multiprocessing

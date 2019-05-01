@@ -8,8 +8,8 @@ from itertools import count
 import time
 import pdb
 
-a = 6
-import pyautogui
+# import pyautogui
+
 import threading
 import os
 import cv2
