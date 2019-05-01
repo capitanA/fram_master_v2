@@ -7,6 +7,8 @@ import numpy as np
 from itertools import count
 import time
 import pdb
+
+a = 6
 import pyautogui
 import threading
 import os
@@ -215,7 +217,7 @@ def recording_video(directory, window_width, window_height):
     # size = window_width, window_height
     cap = cv2.VideoCapture(0)
     out = cv2.VideoWriter(file_name, fourcc, 24, (window_width, window_height))
-    return out,cap
+    return out, cap
 
 
 class MyThread(threading.Thread):
