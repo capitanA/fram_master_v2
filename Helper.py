@@ -180,24 +180,24 @@ def draw_line_text(self, connected_Aspects):
             width=line_text_width)
 
 
-def start():
-    output = "video.avi"
-    img = pyautogui.screenshot()
-    img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    # get info from img
-    height, width, channels = img.shape
-    # Define the codec and create VideoWriter object
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output, fourcc, 20.0, (width, height))
-
-    while (True):
-        try:
-            img = pyautogui.screenshot()
-            image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-            out.write(image)
-            StopIteration(0.5)
-        except KeyboardInterrupt:
-            break
+# def start():
+#     output = "video.avi"
+#     img = pyautogui.screenshot()
+#     img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+#     # get info from img
+#     height, width, channels = img.shape
+#     # Define the codec and create VideoWriter object
+#     fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#     out = cv2.VideoWriter(output, fourcc, 20.0, (width, height))
+#
+#     while (True):
+#         try:
+#             img = pyautogui.screenshot()
+#             image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+#             out.write(image)
+#             StopIteration(0.5)
+#         except KeyboardInterrupt:
+#             break
 
 
 def recording_video(directory, window_width, window_height):
