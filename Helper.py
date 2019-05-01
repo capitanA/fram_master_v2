@@ -7,7 +7,6 @@ import numpy as np
 from itertools import count
 import time
 import pdb
-import pyautogui
 import threading
 import os
 import cv2
