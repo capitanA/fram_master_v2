@@ -1,0 +1,366 @@
+Time,Active Function,Active Function Output,Downstream Coupled Function,Coupled Function,Time Tolerance
+0,0,Ice Condition Update,1,I
+5,1,No Ice Load,4,I
+10,4,Complete or partial assessment made,0,I
+15,0,Ice Condition Update,1,I
+20,1,No Ice Load,4,I
+25,4,Complete or partial assessment made,0,I
+30,0,Ice Condition Update,1,I
+35,1,No Ice Load,4,I
+40,4,Complete or partial assessment made,0,I
+45,0,Ice Condition Update,1,I
+50,1,No Ice Load,4,I
+55,4,Complete or partial assessment made,0,I
+60,0,Ice Condition Update,1,I
+65,1,No Ice Load,4,I
+70,4,Complete or partial assessment made,0,I
+75,0,Ice Condition Update,1,I
+80,1,No Ice Load,4,I
+85,4,Complete or partial assessment made,0,I
+90,0,Ice Condition Update,1,I
+95,1,No Ice Load,4,I
+100,4,Complete or partial assessment made,0,I
+105,0,Ice Condition Update,1,I
+110,1,No Ice Load,4,I
+115,4,Complete or partial assessment made,0,I
+120,0,Ice Condition Update,1,I
+125,1,No Ice Load,4,I
+130,4,Complete or partial assessment made,0,I
+135,0,Ice Condition Update,1,I
+140,1,No Ice Load,4,I
+145,4,Complete or partial assessment made,0,I
+150,0,Ice Condition Update,1,I
+155,1,No Ice Load,4,I
+160,4,Complete or partial assessment made,0,I
+165,0,Ice Condition Update,1,I
+170,1,No Ice Load,4,I
+175,4,Complete or partial assessment made,0,I
+180,0,Ice Condition Update,1,I
+185,1,No Ice Load,4,I
+190,4,Complete or partial assessment made,0,I
+195,0,Ice Condition Update,1,I
+200,1,No Ice Load,4,I
+205,4,Complete or partial assessment made,0,I
+210,0,Ice Condition Update,1,I
+215,1,No Ice Load,4,I
+220,4,Complete or partial assessment made,0,I
+225,0,Ice Condition Update,1,I
+230,1,No Ice Load,4,I
+235,4,Complete or partial assessment made,0,I
+240,0,Ice Condition Update,1,I
+245,1,No Ice Load,4,I
+250,4,Complete or partial assessment made,0,I
+255,0,Ice Condition Update,1,I
+260,1,No Ice Load,4,I
+265,4,Complete or partial assessment made,0,I
+270,0,Ice Condition Update,1,I
+275,1,No Ice Load,4,I
+280,4,Complete or partial assessment made,0,I
+285,0,Ice Condition Update,1,I
+290,1,No Ice Load,4,I
+295,4,Complete or partial assessment made,0,I
+300,0,Ice Condition Update,1,I
+305,1,No Ice Load,4,I
+310,4,Complete or partial assessment made,0,I
+315,0,Ice Condition Update,1,I
+320,1,No Ice Load,4,I
+325,4,Complete or partial assessment made,0,I
+330,0,Ice Condition Update,1,I
+335,1,No Ice Load,4,I
+340,4,Complete or partial assessment made,0,I
+345,0,Ice Condition Update,1,I
+350,1,No Ice Load,4,I
+355,4,Complete or partial assessment made,0,I
+360,0,Ice Condition Update,1,I
+365,1,No Ice Load,4,I
+370,4,Complete or partial assessment made,0,I
+375,0,Ice Condition Update,1,I
+380,1,No Ice Load,4,I
+385,4,Complete or partial assessment made,0,I
+390,0,Ice Condition Update,1,I
+395,1,No Ice Load,4,I
+400,4,Complete or partial assessment made,0,I
+405,0,Ice Condition Update,1,I
+410,1,No Ice Load,4,I
+415,4,Complete or partial assessment made,0,I
+423,0,Heading Change,5,I
+426,5,Heading = 86.651,4,I
+428,4,Complete or partial assessment made,0,I
+435,0,Ice Condition Update,1,I
+440,1,No Ice Load,4,I
+445,4,Complete or partial assessment made,0,I
+450,0,Ice Condition Update,1,I
+455,1,No Ice Load,4,I
+460,4,Complete or partial assessment made,0,I
+465,0,Ice Condition Update,1,I
+470,1,No Ice Load,4,I
+475,4,Complete or partial assessment made,0,I
+480,0,Ice Condition Update,1,I
+485,1,No Ice Load,4,I
+490,4,Complete or partial assessment made,0,I
+495,0,Ice Condition Update,1,I
+500,1,No Ice Load,4,I
+505,4,Complete or partial assessment made,0,I
+510,0,Ice Condition Update,1,I
+515,1,No Ice Load,4,I
+520,4,Complete or partial assessment made,0,I
+525,0,Ice Condition Update,1,I
+530,1,No Ice Load,4,I
+535,4,Complete or partial assessment made,0,I
+540,0,Ice Condition Update,1,I
+545,1,No Ice Load,4,I
+550,4,Complete or partial assessment made,0,I
+555,0,Ice Condition Update,1,I
+560,1,No Ice Load,4,I
+565,4,Complete or partial assessment made,0,I
+570,0,Ice Condition Update,1,I
+575,1,No Ice Load,4,I
+580,4,Complete or partial assessment made,0,I
+585,0,Ice Condition Update,1,I
+590,1,No Ice Load,4,I
+595,4,Complete or partial assessment made,0,I
+600,0,Ice Condition Update,1,I
+605,1,No Ice Load,4,I
+610,4,Complete or partial assessment made,0,I
+615,0,Ice Condition Update,1,I
+620,1,No Ice Load,4,I
+625,4,Complete or partial assessment made,0,I
+630,0,Ice Condition Update,1,I
+635,1,No Ice Load,4,I
+640,4,Complete or partial assessment made,0,I
+645,0,Ice Condition Update,1,I
+650,1,No Ice Load,4,I
+655,4,Complete or partial assessment made,0,I
+660,0,Ice Condition Update,1,I
+665,1,No Ice Load,4,I
+670,4,Complete or partial assessment made,0,I
+675,0,Ice Condition Update,1,I
+680,1,No Ice Load,4,I
+685,4,Complete or partial assessment made,0,I
+690,0,Ice Condition Update,1,I
+695,1,No Ice Load,4,I
+700,4,Complete or partial assessment made,0,I
+705,0,Ice Condition Update,1,I
+710,1,No Ice Load,4,I
+715,4,Complete or partial assessment made,0,I
+720,0,Ice Condition Update,1,I
+725,1,No Ice Load,4,I
+730,4,Complete or partial assessment made,0,I
+735,0,Ice Condition Update,1,I
+740,1,No Ice Load,4,I
+745,4,Complete or partial assessment made,0,I
+750,0,Ice Condition Update,1,I
+755,1,No Ice Load,4,I
+760,4,Complete or partial assessment made,0,I
+765,0,Ice Condition Update,1,I
+770,1,No Ice Load,4,I
+775,4,Complete or partial assessment made,0,I
+780,0,Ice Condition Update,1,I
+785,1,No Ice Load,4,I
+790,4,Complete or partial assessment made,0,I
+795,0,Ice Condition Update,1,I
+800,1,No Ice Load,4,I
+805,4,Complete or partial assessment made,0,I
+810,0,Ice Condition Update,1,I
+815,1,No Ice Load,4,I
+820,4,Complete or partial assessment made,0,I
+825,0,Ice Condition Update,1,I
+830,1,No Ice Load,4,I
+835,4,Complete or partial assessment made,0,I
+840,0,Ice Condition Update,1,I
+845,1,No Ice Load,4,I
+850,4,Complete or partial assessment made,0,I
+855,0,Ice Condition Update,1,I
+860,1,No Ice Load,4,I
+865,4,Complete or partial assessment made,0,I
+870,0,Ice Condition Update,1,I
+875,1,No Ice Load,4,I
+880,4,Complete or partial assessment made,0,I
+885,0,Ice Condition Update,1,I
+890,1,No Ice Load,4,I
+895,4,Complete or partial assessment made,0,I
+900,0,Ice Condition Update,1,I
+905,1,No Ice Load,4,I
+910,4,Complete or partial assessment made,0,I
+915,0,Ice Condition Update,1,I
+920,1,No Ice Load,4,I
+925,4,Complete or partial assessment made,0,I
+930,0,Ice Condition Update,1,I
+935,1,No Ice Load,4,I
+940,4,Complete or partial assessment made,0,I
+945,0,Ice Condition Update,1,I
+950,1,No Ice Load,4,I
+955,4,Complete or partial assessment made,0,I
+960,0,Ice Condition Update,1,I
+965,1,No Ice Load,4,I
+970,4,Complete or partial assessment made,0,I
+975,0,Ice Condition Update,1,I
+980,1,No Ice Load,4,I
+985,4,Complete or partial assessment made,0,I
+990,0,Ice Condition Update,1,I
+995,1,No Ice Load,4,I
+1000,4,Complete or partial assessment made,0,I
+1005,0,Ice Condition Update,1,I
+1010,1,No Ice Load,4,I
+1015,4,Complete or partial assessment made,0,I
+1023,0,Heading Change,5,I
+1026,5,Heading = 80.815,4,I
+1028,4,Complete or partial assessment made,0,I
+1040,1,No Ice Load,4,I
+1048,0,Heading Change,5,I
+1049,5,Heading = 50.496,4,I
+1050,0,Ice Condition Update,1,I
+1055,1,No Ice Load,4,I
+1060,4,Complete or partial assessment made,0,I
+1070,1,No Ice Load,4,I
+1073,0,Speed Change  Heading Change,5,I
+1076,5,Heading = 30.8  Speed = 0.9757 kn,4,I
+1078,4,Complete or partial assessment made,0,I
+1080,0,Ice Condition Update,1,I
+1085,1,No Ice Load,4,I
+1090,4,Complete or partial assessment made,0,I
+1098,0,Speed Change  Heading Change,5,I
+1101,5,Heading = 16.942  Speed = 2.4564 kn,4,I
+1103,4,Complete or partial assessment made,0,I
+1115,1,No Ice Load,4,I
+1123,0,Heading Change,5,I
+1124,5,Heading = 3.2434,4,I
+1125,0,Ice Condition Update,1,I
+1130,1,No Ice Load,4,I
+1135,4,Complete or partial assessment made,0,I
+1145,1,No Ice Load,4,I
+1148,0,Speed Change  Heading Change,5,I
+1151,5,Heading = 355.59  Speed = 1.7622 kn,4,I
+1153,4,Complete or partial assessment made,0,I
+1155,0,Ice Condition Update,1,I
+1160,1,No Ice Load,4,I
+1165,4,Complete or partial assessment made,0,I
+1173,0,Heading Change,5,I
+1176,5,Heading = 341.3,4,I
+1178,4,Complete or partial assessment made,0,I
+1190,1,No Ice Load,4,I
+1198,0,Heading Change,5,I
+1199,5,Heading = 331.43,4,I
+1200,0,Ice Condition Update,1,I
+1205,1,No Ice Load,4,I
+1210,4,Complete or partial assessment made,0,I
+1220,1,No Ice Load,4,I
+1223,0,Heading Change,5,I
+1226,5,Heading = 314.19,4,I
+1228,4,Complete or partial assessment made,0,I
+1230,0,Ice Condition Update,1,I
+1235,1,No Ice Load,4,I
+1240,4,Complete or partial assessment made,0,I
+1248,0,Heading Change,5,I
+1251,5,Heading = 297.32,4,I
+1253,4,Complete or partial assessment made,0,I
+1265,1,No Ice Load,4,I
+1273,0,Heading Change,5,I
+1274,5,Heading = 279.83,4,I
+1275,0,Ice Condition Update,1,I
+1280,1,No Ice Load,4,I
+1285,4,Complete or partial assessment made,0,I
+1295,1,No Ice Load,4,I
+1298,0,Heading Change,5,I
+1301,5,Heading = 270.18,4,I
+1303,4,Complete or partial assessment made,0,I
+1305,0,Ice Condition Update,1,I
+1310,1,No Ice Load,4,I
+1315,4,Complete or partial assessment made,0,I
+1323,0,Heading Change,5,I
+1326,5,Heading = 264.11,4,I
+1328,4,Complete or partial assessment made,0,I
+1335,0,Ice Condition Update,1,I
+1340,1,No Ice Load,4,I
+1345,4,Complete or partial assessment made,0,I
+1350,0,Ice Condition Update,1,I
+1355,1,No Ice Load,4,I
+1360,4,Complete or partial assessment made,0,I
+1365,0,Ice Condition Update,1,I
+1370,1,No Ice Load,4,I
+1375,4,Complete or partial assessment made,0,I
+1380,0,Ice Condition Update,1,I
+1385,1,No Ice Load,4,I
+1390,4,Complete or partial assessment made,0,I
+1398,0,Heading Change,5,I
+1401,5,Heading = 269.53,4,I
+1403,4,Complete or partial assessment made,0,I
+1410,0,Ice Condition Update,1,I
+1415,1,No Ice Load,4,I
+1420,4,Complete or partial assessment made,0,I
+1425,0,Ice Condition Update,1,I
+1430,1,No Ice Load,4,I
+1435,4,Complete or partial assessment made,0,I
+1440,0,Ice Condition Update,1,I
+1445,1,No Ice Load,4,I
+1450,4,Complete or partial assessment made,0,I
+1455,0,Ice Condition Update,1,I
+1460,1,No Ice Load,4,I
+1465,4,Complete or partial assessment made,0,I
+1470,0,Ice Condition Update,1,I
+1475,1,No Ice Load,4,I
+1480,4,Complete or partial assessment made,0,I
+1485,0,Ice Condition Update,1,I
+1490,1,No Ice Load,4,I
+1495,4,Complete or partial assessment made,0,I
+1500,0,Ice Condition Update,1,I
+1505,1,No Ice Load,4,I
+1510,4,Complete or partial assessment made,0,I
+1515,0,Ice Condition Update,1,I
+1520,1,No Ice Load,4,I
+1525,4,Complete or partial assessment made,0,I
+1530,0,Ice Condition Update,1,I
+1535,1,No Ice Load,4,I
+1540,4,Complete or partial assessment made,0,I
+1545,0,Ice Condition Update,1,I
+1550,1,No Ice Load,4,I
+1555,4,Complete or partial assessment made,0,I
+1560,0,Ice Condition Update,1,I
+1565,1,No Ice Load,4,I
+1570,4,Complete or partial assessment made,0,I
+1575,0,Ice Condition Update,1,I
+1580,1,No Ice Load,4,I
+1585,4,Complete or partial assessment made,0,I
+1590,0,Ice Condition Update,1,I
+1595,1,No Ice Load,4,I
+1600,4,Complete or partial assessment made,0,I
+1605,0,Ice Condition Update,1,I
+1610,1,No Ice Load,4,I
+1615,4,Complete or partial assessment made,0,I
+1620,0,Ice Condition Update,1,I
+1625,1,No Ice Load,4,I
+1630,4,Complete or partial assessment made,0,I
+1635,0,Ice Condition Update,1,I
+1640,1,No Ice Load,4,I
+1645,4,Complete or partial assessment made,0,I
+1650,0,Ice Condition Update,1,I
+1655,1,No Ice Load,4,I
+1660,4,Complete or partial assessment made,0,I
+1665,0,Ice Condition Update,1,I
+1670,1,No Ice Load,4,I
+1675,4,Complete or partial assessment made,0,I
+1680,0,Ice Condition Update,1,I
+1685,1,No Ice Load,4,I
+1690,4,Complete or partial assessment made,0,I
+1695,0,Ice Condition Update,1,I
+1700,1,No Ice Load,4,I
+1705,4,Complete or partial assessment made,0,I
+1710,0,Ice Condition Update,1,I
+1715,1,No Ice Load,4,I
+1720,4,Complete or partial assessment made,0,I
+1725,0,Ice Condition Update,1,I
+1730,1,No Ice Load,4,I
+1735,4,Complete or partial assessment made,0,I
+1740,0,Ice Condition Update,1,I
+1745,1,No Ice Load,4,I
+1750,4,Complete or partial assessment made,0,I
+1755,0,Ice Condition Update,1,I
+1760,1,No Ice Load,4,I
+1765,4,Complete or partial assessment made,0,I
+1770,0,Ice Condition Update,1,I
+1775,1,No Ice Load,4,I
+1780,4,Complete or partial assessment made,0,I
+1785,0,Ice Condition Update,1,I
+1790,1,No Ice Load,4,I
+1795,4,Complete or partial assessment made,0,I
+1796,0,Ice Condition Update,1,I

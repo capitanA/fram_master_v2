@@ -1,0 +1,189 @@
+<?xml version="1.0" standalone="yes"?>
+<FM Version="0,0,2,0">
+  <Functions>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="578.75" y="158.4" style="red" color="15007744">
+      <IDNr>0</IDNr>
+      <FunctionType>0</FunctionType>
+      <IDName>Set new/ maintain course</IDName>
+      <Description>A decision is made to either maintain the current course or to make adjustments to course.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="173.70321359942045" y="115.9241569272933" fnType="2" style="green" color="1555713">
+      <IDNr>1</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Observe Ice conditions</IDName>
+      <Description>Observe the current ice conditions. This can be done from the bridge or on deck, but also the conditions ahead can be observed via helicopter or aircraft</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="12.595142979775801" y="6.598390148531976" style="blue" color="108251">
+      <IDNr>2</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Forecast Ice conditions</IDName>
+      <Description>Obtain the forcasted ice conditions. This may be done by historical trends in area and/or tactical ice drift models</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="173.20001220703114" y="218.95484481319312" style="grey" color="8618883">
+      <IDNr>3</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Assess location and surrounding geography</IDName>
+      <Description>Locate the vessel with respect to intended route, shipping lanes and regional geographic features.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="751.8" y="158.15">
+      <IDNr>4</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Assess location and surrounding geography</IDName>
+      <Description>Locate the vessel with respect to intended route, shipping lanes and regional geographic features.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="392.75" y="160.2" style="red" color="15007744">
+      <IDNr>5</IDNr>
+      <FunctionType>0</FunctionType>
+      <IDName>Make situational assessment</IDName>
+      <Description>The captain and bridge team make a situational assessment based on the available information at a given time.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="173.75" y="321" style="yellow" color="12236583">
+      <IDNr>6</IDNr>
+      <FunctionType>0</FunctionType>
+      <IDName>Monitor vessel/Cargo condition</IDName>
+      <Description>The vessel's condition is monitored to understand the vessel's current capabilities.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="171.05" y="8.05" style="blue" color="108251">
+      <IDNr>7</IDNr>
+      <FunctionType>0</FunctionType>
+      <IDName>Compute Ice Numeral</IDName>
+      <Description>Compute the ice numeral as per Canadian regulatory requirements.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="14.6" y="112.25" style="blue" color="108251">
+      <IDNr>8</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Assign ship classification</IDName>
+      <Description>The ship is assigned a classification. In particular, this classification here pertains to the category that will be used to compute the ice numerial.</Description>
+    </Function>
+    <Function fnStyle="0" Tp="-1" Pp="-1" x="18" y="323.9" style="yellow" color="12236583">
+      <IDNr>9</IDNr>
+      <FunctionType>2</FunctionType>
+      <IDName>Become aware of vessel's capability</IDName>
+      <Description>The navigator becomes aware of the vessel's capabilities. The navigational, structural and operational capabilities.</Description>
+    </Function>
+  </Functions>
+  <Aspects/>
+  <Controls>
+    <Control>
+      <IDNr>2</IDNr>
+      <IDName>Ice Numerial computed</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Control>
+  </Controls>
+  <Inputs>
+    <Input>
+      <IDNr>1</IDNr>
+      <IDName>Weather forecast obtained</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>2</IDNr>
+      <IDName>Up route ice conditions assess. with Helicopter</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>4</IDNr>
+      <IDName>Geographical assessment made</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>5</IDNr>
+      <IDName>Complete or partial assessment made</IDName>
+      <FunctionIDNr>0</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>14</IDNr>
+      <IDName>Routing decision made</IDName>
+      <FunctionIDNr>4</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>16</IDNr>
+      <IDName>Aware of apparent vessel condition</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Input>
+    <Input>
+      <IDNr>18</IDNr>
+      <IDName>Daily ice chart observed</IDName>
+      <FunctionIDNr>7</FunctionIDNr>
+    </Input>
+  </Inputs>
+  <Outputs>
+    <Output>
+      <IDNr>4</IDNr>
+      <IDName>Geographical assessment made</IDName>
+      <FunctionIDNr>3</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>5</IDNr>
+      <IDName>Complete or partial assessment made</IDName>
+      <FunctionIDNr>5</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>6</IDNr>
+      <IDName>Routing decision made</IDName>
+      <FunctionIDNr>0</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>9</IDNr>
+      <IDName>Weather forecast obtained</IDName>
+      <FunctionIDNr>1</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>17</IDNr>
+      <IDName>Aware of apparent vessel condition</IDName>
+      <FunctionIDNr>6</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>18</IDNr>
+      <IDName>Ship classification assigned</IDName>
+      <FunctionIDNr>8</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>19</IDNr>
+      <IDName>Ice Numerial computed</IDName>
+      <FunctionIDNr>7</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>22</IDNr>
+      <IDName>Up route ice conditions assess. with Helicopter</IDName>
+      <FunctionIDNr>1</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>30</IDNr>
+      <IDName>Engine room maintaince/issues informed</IDName>
+      <FunctionIDNr>9</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>34</IDNr>
+      <IDName>Aware of vessel's typical capability</IDName>
+      <FunctionIDNr>9</FunctionIDNr>
+    </Output>
+    <Output>
+      <IDNr>36</IDNr>
+      <IDName>Daily ice chart observed</IDName>
+      <FunctionIDNr>2</FunctionIDNr>
+    </Output>
+  </Outputs>
+  <Preconditions>
+    <Precondition>
+      <IDNr>3</IDNr>
+      <IDName>Ship classification assigned</IDName>
+      <FunctionIDNr>7</FunctionIDNr>
+    </Precondition>
+    <Precondition>
+      <IDNr>7</IDNr>
+      <IDName>Engine room maintaince/issues informed</IDName>
+      <FunctionIDNr>6</FunctionIDNr>
+    </Precondition>
+    <Precondition>
+      <IDNr>10</IDNr>
+      <IDName>Aware of vessel's typical capability</IDName>
+      <FunctionIDNr>6</FunctionIDNr>
+    </Precondition>
+  </Preconditions>
+  <Resources/>
+  <Times/>
+  <Playbacks>
+    <Playback type="2">END</Playback>
+  </Playbacks>
+</FM>
