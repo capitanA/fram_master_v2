@@ -17,6 +17,7 @@ from SceneEvent import SceneEvent
 from FramCanvas import *
 from HistoryData import HistoryData
 from Recursive import Recursive
+from Linear import Linear
 from functools import partial
 from Helper import MyThread
 import logging
@@ -87,8 +88,7 @@ class Start:
         if var.get() == "C":
             self.play_recursive()
         elif var.get() == "L":
-            pass
-            #
+            self.play_linear_dynamic()
         else:
             pass
             # play_linear_static()
@@ -119,22 +119,19 @@ class Start:
                                     window_height=window_height, logger=logger, y_max=dynaFramCanvas.y_max)
         self.method.play_recursive()
 
-    # def play_linear_dynamic():
-    #     dynaFramCanvas.hexagons_text = []
-    #     dfp_linear.play_linear('dynamic',
-    #                            show_hide_flag.get(),
-    #                            dynaFramCanvas,
-    #                            events,
-    #                            history_data,
-    #                            CLOCK,
-    #                            canvas_width,
-    #                            root,
-    #                            r,
-    #                            canvas_height,
-    #                            pre_screenshot_time,
-    #                            window_width,
-    #                            window_height,
-    #                            speed_mode.get())
+    def play_linear_dynamic(self):
+        if not self.scene_event:
+            messagebox.showinfo("oops", "upload the scenario first")
+            return
+
+        self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
+                             root=root,
+                             canvas=dynaFramCanvas.canvas,
+                             scene_events=self.scene_event.scene_events,
+                             speed_mode=self.speed_mode.get(),
+                             clock=CLOCK, window_width=window_width,
+                             window_height=window_height, logger=logger, y_max=dynaFramCanvas.y_max)
+        self.method.draw_model()
 
     # def play_linear_static():
     #     dynaFramCanvas.hexagons_text = []

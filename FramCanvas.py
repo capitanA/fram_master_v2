@@ -6,7 +6,7 @@ from Helper import lcurve, take_o_name, get_connector
 from tkinter import messagebox
 import pdb
 
-r = 20
+r = 40
 
 
 class FramCanvas(tk.Frame):
@@ -20,13 +20,15 @@ class FramCanvas(tk.Frame):
                                 borderwidth=1, width=canvas_width_fram,
                                 height=canvas_height_fram, highlightthickness=2)
 
-        # self.xsb = tk.Scrollbar(self, orient="horizontal",
-        #                         command=self.canvas.xview)
-        # self.ysb = tk.Scrollbar(self, orient="vertical",
-        #                         command=self.canvas.yview)
-        # self.canvas.configure(yscrollcommand=self.ysb.set,
-        #                       xscrollcommand=self.xsb.set)
+        self.xsb = tk.Scrollbar(self, orient="horizontal",
+                                command=self.canvas.xview)
+        # self.ysb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(xscrollcommand=self.xsb.set)
         self.canvas.configure(scrollregion=self.canvas.bbox("current"))
+        self.xsb.grid(row=1, column=0, sticky="ew")
+        # self.ysb.grid(row=0, column=1, sticky="ns")
+
+        # self.canvas.configure(scrollregion=self.canvas.bbox("current"))
         # self.xsb.grid(row=1, column=0, sticky="ew")
         # self.ysb.grid(row=0, column=1, sticky="ns")
         self.canvas.grid(row=0, column=0, sticky="nsew")
@@ -58,7 +60,7 @@ class FramCanvas(tk.Frame):
 
     def draw_oval(self, hexagon):
         for attr, value in hexagon.hex_aspects.__dict__.items():
-            if attr=="resources":
+            if attr == "resources":
                 if value.y_oright > self.y_max:
                     self.y_max = value.y_oright
             value.drawn = self.canvas.create_oval(value.x_oleft,
