@@ -14,6 +14,9 @@ from Helper import get_connector, get_arc_properties, MyThread, recording_video
 import multiprocessing
 import threading
 import ipdb
+from functools import partial
+from functools import partial, update_wrapper
+
 from Helper import lcurve, take_o_name, get_connector
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
@@ -59,11 +62,26 @@ class Linear:
         self.time = -1
         self.max_time = self.scene_events[-1].time_stamp
         self.min_time = self.scene_events[0].time_stamp
+        self.uniq_scene_events = list()
+        self.time_stamp = 0
+        self.i = 11
+        self.last_x = 0
+        self.uniq_hexagon = []
+        self.time_portion = self.scene_events[0].time_stamp
+        self.sync_time_portion = 0
+        self.percentage = 0
+        self.hexa = list()
 
     def get_hexagon(self, id):
         for hexagon in self.hexagons_from_model:
             if hexagon.id == id:
                 return hexagon
+
+    def get_hexagon_from_selfhexagons(self, id):
+        for hexagon in self.hexagons:
+            if hexagon.id == id:
+                self.hexa.append(hexagon)
+        return self.hexa
 
     def get_hexagon_by_index(self, index):
         for hexagon in self.hexagons:
@@ -79,6 +97,14 @@ class Linear:
                 self.cycle += 1
             if not is_out and event.active_func == hex_id and i >= row:
                 break
+
+    def take_screenshot(self, current_time, directory_new):
+        self.logger.info("### taking screenshot at: {}".format(current_time))
+        img = ImageGrab.grab()
+        img_np = np.array(img)
+        frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+        directory_new_2 = os.path.join(directory_new, "screenshot_{}.jpg".format(current_time))
+        cv2.imwrite(directory_new_2, frame)
 
     def check_prescreenshot(self):
         if self.pre_screenshot_time:
@@ -114,7 +140,7 @@ class Linear:
                                                    hexagon.hex_aspects.preconditions.y_c,
                                                    hexagon.hex_aspects.resources.x_c,
                                                    hexagon.hex_aspects.resources.y_c,
-                                                   fill="white", outline="black")
+                                                   fill="tomato", outline="black")
 
     def draw_polygon_text(self, hexagon, text_width, x, y):
         hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
@@ -151,13 +177,25 @@ class Linear:
 
             line_text_width = min(0.8 * abs(object.aspect_out.x_sline
                                             - object.aspect_in.x_sline), 4 * 40)
-            self.canvas.create_text(
+
+            object.drawn_text = self.canvas.create_text(
                 (object.aspect_in.x_sline + object.aspect_out.x_sline) / 2,
                 ((object.aspect_in.y_sline + object.aspect_out.y_sline) / 2) + 12,
                 anchor="center",
                 text=object.text,
                 font=("Helvetica", 8),
                 width=line_text_width)
+
+    def set_interval(self, func, sec, *argv):
+        def func_wrapper():
+            self.set_interval(func, sec, *argv)
+            func(*argv)
+
+        t = threading.Timer(sec, func_wrapper)
+        t.start()
+        return t
+
+    """I think that this def is not used in project"""
 
     def draw_line_text(self, connected_aspects):
         for object in connected_aspects:
@@ -194,11 +232,11 @@ class Linear:
     def create_hexagon(self, event, is_end):
         if event.active_func == 0:
             self.cycle = self.cycle + 1
-
+        # this index is for hexagon's number
         index = (len(self.hexagons_from_model) * self.cycle) + event.active_func
 
         hexagon = self.get_hexagon(event.active_func)
-        x = (self.window_width * 0.75) + (event.time_stamp * 100)
+        x = 1270 + (event.time_stamp * 100)
         y = hexagon.y
         aspects = Aspects(outputs=Aspect(o_name="O", x=x, y=y, r=r),
                           controls=Aspect(o_name="C", x=x, y=y, r=r),
@@ -209,6 +247,11 @@ class Linear:
 
         self.hexagons.append(Hexagon(id=hexagon.id, name=hexagon.name, x=x, y=hexagon.y,
                                      hex_aspects=aspects, connected_aspects=[], is_end=is_end, index=index))
+
+        if event not in self.seen_events:
+            self.uniq_hexagon.append(Hexagon(id=hexagon.id, name=hexagon.name, x=x, y=hexagon.y,
+                                             hex_aspects=aspects, connected_aspects=[], is_end=is_end, index=index))
+            self.seen_events.append(event.time_stamp)
 
         if is_end:
             print("#### {}".format(x))
@@ -232,52 +275,89 @@ class Linear:
             self.create_connected_aspect(event, i)
 
     def draw_model(self):
+
         self.create_model_from_scenario()
         self.draw_hexagon()
-        self.loop_linear()
+        self.play_linear()
 
-    def loop_linear(self):
+
+
+    def play_linear(self):
+
+        # pdb.set_trace()
+        if self.history_events:
+
+            for event in self.history_events:
+                self.history_times.add(event.time)
+            history_iterator = self.history_event_generator()
+            directory_new = self.check_prescreenshot()
+
+            self.loop_linear(history_iterator=history_iterator, directory_new=directory_new)
+        else:
+            directory_new = self.check_prescreenshot()
+            self.loop_linear(directory_new=directory_new, history_iterator=None)
+
+    def history_event_generator(self):
+        for history_event in self.history_events:
+            yield history_event
+
+    # def wrapped_partial(self, func, *args):
+    #     partial_func = partial(func, *args)
+    #     update_wrapper(partial_func, func)
+    #     return partial_func
+
+    # def check_point_i(self, iterator_event, iterator_hexagon):
+    #     if self.i > 10:
+    #         self.i = 1
+    #
+    #         event = next(iterator_event)
+    #         hexagon = next(iterator_hexagon)
+    #         self.sync_time_portion = (self.time_portion * DIC_TIME[self.speed_mode]) / 10
+    #         portion_x = hexagon.hex_aspects.inputs.x_c / 10
+    #         self.percentage = (portion_x / self.last_x)
+    #         # self.percentage = (portion_x / (self.last_x - self.window_width))
+    #         self.time_portion = self.get_duration(event.time_stamp)
+
+    def loop_linear(self, directory_new, history_iterator):
+        # if user hits stop button
         if self.stop:
-            self.clock["text"] = ""
-            self.canvas.xview_moveto(0)
             return
+
         if self.time != self.max_time:
+            # checking for having a predfine screen shot
+
+            if self.time in self.pre_screenshot_time and self.time not in self.seen_screenshots:
+                self.seen_screenshots.append(self.time)
+                self.take_screenshot(self.time, directory_new)
+
             self.time += 1
             self.clock['text'] = f"TIME:{str(self.time)}s" if self.time > -1 else 0
-            x = ((1000 / DIC_TIME[self.speed_mode]) / self.max_time) * self.time
+            # checking for history_data
+            if self.history_events and self.time in self.history_times:
+                history_event = next(history_iterator)
+                hexagons = self.get_hexagon_from_selfhexagons(self.f_choice_number)
+                for hexa in hexagons:
+                    for connected_aspect in hexa.connected_aspects:
+                        connected_aspect.text = str(
+                            f"{history_event.name_var1}:" + " " + str(
+                                history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
+                                history_event.var2))
+                        self.canvas.itemconfigure(connected_aspect.drawn_text, text=connected_aspect.text)
+
+
+
+            x = (100 / self.uniq_hexagon[-1].hex_aspects.outputs.x_sline) * self.time
             self.canvas.xview_moveto(x)
-            self.canvas.after(DIC_TIME[self.speed_mode], self.loop_linear)
+            self.canvas.after(DIC_TIME[self.speed_mode], self.loop_linear, directory_new, history_iterator)
 
     def reset_loop(self):
-        self.seen_events.clear()
-        self.seen_screenshots.clear()
-        self.clock["text"] = ""
-        self.hexagons.clear()
         self.stop = True
-
-# def play_linear(self):
-#     self.canvas.delete("all")
-#     directory_new = self.check_prescreenshot()
-#     last_time = self.scene_events[-1].time_stamp
-#     interval = DIC_TIME[self.speed_mode] / (5 * 1000)
-#
-#     self.timer = MyThread(last_time=int(last_time), current_time=-1, label=self.clock, root=self.root,
-#                           speed_mode=self.speed_mode)
-#     self.timer.start()
-#
-#     for event in self.scene_events:
-#         # it iterates into each row of sceneevents
-#
-#         if event.time_stamp in self.seen_events:
-#             continue
-#         if event.time_stamp == 0 and not self.history_events:
-#             self.loop_recursive(event.time_stamp, directory_new)
-#         elif event.time_stamp != 0 and not self.history_events:
-#             self.set_interval(self.loop_recursive, interval, event.time_stamp,
-#                               directory_new, self.history_times)
-#         elif event.time_stamp == 0 and self.history_events:
-#             self.loop_recursive(event.time_stamp, directory_new, self.history_times, history_iterator)
-#
-#         elif event.time_stamp != 0 and self.history_events:
-#             self.set_interval(self.loop_recursive, interval, event.time_stamp,
-#                               directory_new, self.history_times, history_iterator)
+        self.clock["text"] = ""
+        self.canvas.xview_moveto(0)
+        if self.history_events:
+            self.history_events.clear()
+        if self.pre_screenshot_time:
+            self.seen_screenshots.clear()
+        self.hexagons.clear()
+        self.seen_events.clear()
+        self.scene_events.clear()

@@ -1,7 +1,7 @@
 """
-Created on Mon Nov 19 13:28:27 2018
+Created on Mon MArch 1 13:28:27 2018
 
-@author: Sinh Bui <sdbui@mun.ca>
+@author: Arash Fasih <a.fassihozzam@mun.ca>
 
 """
 from tkinter import *
@@ -123,14 +123,26 @@ class Start:
         if not self.scene_event:
             messagebox.showinfo("oops", "upload the scenario first")
             return
+        if self.history_event:
+            self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
+                                 root=root,
+                                 canvas=dynaFramCanvas.canvas,
+                                 scene_events=self.scene_event.scene_events,
+                                 history_events=self.history_event.history_events,
+                                 f_choice=self.history_event.f_choice,
+                                 f_choice_number=self.history_event.f_choice_id,
+                                 speed_mode=self.speed_mode.get(),
+                                 clock=CLOCK, window_width=canvas_width,
+                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max)
+        else:
 
-        self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
-                             root=root,
-                             canvas=dynaFramCanvas.canvas,
-                             scene_events=self.scene_event.scene_events,
-                             speed_mode=self.speed_mode.get(),
-                             clock=CLOCK, window_width=window_width,
-                             window_height=window_height, logger=logger, y_max=dynaFramCanvas.y_max)
+            self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
+                                 root=root,
+                                 canvas=dynaFramCanvas.canvas,
+                                 scene_events=self.scene_event.scene_events,
+                                 speed_mode=self.speed_mode.get(),
+                                 clock=CLOCK, window_width=canvas_width,
+                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max)
         self.method.draw_model()
 
     # def play_linear_static():
@@ -183,28 +195,8 @@ class Start:
         dynaFramCanvas.reset_canvas()
         self.method.reset_loop()
         self.pre_screenshot_time = set()
-        # for item in range(0, len(dynaFramCanvas.hexagons) - 1):
-
-        # popup.destroy()
-        # CLOCK.config(text='')
-        # popup.delete(0)
-        # CLOCK["text"] = ""
-        # dynaFramCanvas.reset()
-        # self.method.reset()
         root.update()
         logger.info("### Successfully Resetted!")
-
-        # else:
-        #     self.history_event = None
-        #     self.scene_event = None
-        #     dynaFramCanvas.reset_canvas()
-        #     self.pre_screenshot_time = set()
-        #     # popup.delete(0)
-        #     popup.delete(0, len(dynaFramCanvas.hexagons)-1)
-        #     # popup.destroy()
-        #     CLOCK["text"] = ""
-        #     logger.info("### Successfully Resetted!")
-
 
 if __name__ == '__main__':
 

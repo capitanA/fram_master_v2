@@ -8,7 +8,7 @@ from itertools import count
 import time
 import pdb
 
-# import pyautogui
+import pyautogui
 
 import threading
 import os
@@ -200,24 +200,32 @@ def draw_line_text(self, connected_Aspects):
 #             break
 
 
-def recording_video(directory, window_width, window_height):
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+def recording_video(stop, directory, window_width, window_height):
+    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
-    file_name = "sample.avi"
 
     # img = pyautogui.screenshot()
     # img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
     # window_height, window_width, channels = img.shape
-
-    directory_new = os.path.join(directory, file_name)
     # directory_new = os.path.join(directory, file_name.split("/")[-1])
+    # directory_new = os.path.join(directory, file_name)
+    # if len(directory_new) < 5 or directory_new[-4:] != ".avi":
+    #     directory_new += ".avi"
 
-    if len(directory_new) < 5 or directory_new[-4:] != ".avi":
-        directory_new += ".avi"
-    # size = window_width, window_height
-    cap = cv2.VideoCapture(0)
-    out = cv2.VideoWriter(file_name, fourcc, 24, (window_width, window_height))
-    return out, cap
+    file_name = "sample1.avi"
+
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(file_name, fourcc, 5, (window_width, window_height))
+
+    while not stop:
+        # print("video is running")
+        img = ImageGrab.grab()
+        # img = pyautogui.screenshot()
+        image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        out.write(image)
+
+    out.release()
+    cv2.destroyAllWindows()
 
 
 class MyThread(threading.Thread):

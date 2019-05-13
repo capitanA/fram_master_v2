@@ -40,7 +40,7 @@ class Recursive:
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
-        # self.video_recorder()
+
         self.hexagons = hexagons
         self.scene_events = scene_events
         self.f_choice = f_choice
@@ -53,6 +53,7 @@ class Recursive:
         self.stop = stop
         self.y_max = y_max
         self.index = 0
+        self.video_recorder()
         """middle point for curve of last hexagon """
 
     def video_recorder(self):
@@ -60,8 +61,12 @@ class Recursive:
         directory = os.path.join(cwd, "Video")
         if not os.path.exists(directory):
             os.makedirs(directory)
-        res = recording_video(directory, self.window_width, self.window_height)
-        self.recording_loop(res)
+        # thread = MyThread(stop=self.stop, width=self.window_width, height=self.window_height)
+        # thread.recording_video()
+
+        thread_2 = threading.Thread(target=recording_video,
+                                    args=(self.stop, directory, self.window_width, self.window_height))
+        thread_2.start()
 
     def recording_loop(self, res):
         # if self.stop:
@@ -183,15 +188,6 @@ class Recursive:
         start_ang = 360 - (18 * step)
         extend = 18 * step
         bbox = self.check_which_hexagon(connected_aspect)
-        # x0 = connected_aspect.aspect_out.x_sline
-        # y0 = connected_aspect.aspect_out.y_sline
-        # x1 = connected_aspect.aspect_in.x_sline
-        # y1 = connected_aspect.aspect_in.y_sline
-        # length = x0 - x1
-        # bboxy1 = y0 + length
-        # bboxx1 = x0
-        # bboxx2 = x0 - (2 * length)
-        # bboxy2 = y0 - length
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bbox[0], bbox[1], bbox[2], bbox[3], start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
@@ -323,37 +319,31 @@ class Recursive:
         ## activating event text
         line_text_width = min(0.8 * abs(connected_aspect.aspect_out.x_sline
                                         - connected_aspect.aspect_in.x_sline), 4 * 40)
-        if not self.f_choice and hexagon.name != self.f_choice and not hexagon.is_end:
-            event.draw_active_func_output = self.canvas.create_text(
-                (connected_aspect.aspect_in.x_sline + connected_aspect.aspect_out.x_sline) / 2,
-                (connected_aspect.aspect_in.y_sline + connected_aspect.aspect_out.y_sline) / 2,
-                anchor="center",
-                text=connected_aspect.text,
-                font=("Helvetica", 7),
-                width=line_text_width)
-        elif not self.f_choice and hexagon.name != self.f_choice and hexagon.is_end:
+        if self.f_choice and hexagon.name == self.f_choice:
+            # if self.f_choice and hexagon.name == self.f_choice and not hexagon.is_end:
+            pass
+
+        elif hexagon.is_end:
             x0 = connected_aspect.aspect_out.x_sline
             y0 = connected_aspect.aspect_out.y_sline
             x1 = connected_aspect.aspect_in.x_sline
             y1 = connected_aspect.aspect_in.y_sline
             bbox = self.check_which_hexagon(connected_aspect)
             x_elips = (x0 + x1) / 2
-            """circle equation for last hexagon curve"""
-            # y_circle = math.sqrt((((x0 + index) - (x1 + index)) ** 2) - ((x_circle - (x0 + index)) ** 2)) + (y0 + index)
             y_elips = (0.85 * (bbox[1] - y0)) + y0
-            # part_1 = ((x_elips-x1) ** 2)
-            # part_2 = ((bbox[1] - y0) ** 2)
-            # part_3 = ((bbox[0] - x1) ** 2)
-            """elips equation for last hexagon curve"""
-            # print(math.sqrt((1 - (part_1 / part_2))))
-            # res = (1 - (part_1 / part_2))
-            # print(res)
-            # res2 = (self.isqrt(res))
-            # res_elips = (res2 * part_3)+y0
 
             event.draw_active_func_output = self.canvas.create_text(
                 x_elips,
                 y_elips,
+                anchor="center",
+                text=connected_aspect.text,
+                font=("Helvetica", 7),
+                width=line_text_width)
+
+        else:
+            event.draw_active_func_output = self.canvas.create_text(
+                (connected_aspect.aspect_in.x_sline + connected_aspect.aspect_out.x_sline) / 2,
+                (connected_aspect.aspect_in.y_sline + connected_aspect.aspect_out.y_sline) / 2,
                 anchor="center",
                 text=connected_aspect.text,
                 font=("Helvetica", 7),
@@ -439,7 +429,9 @@ class Recursive:
             hexagon = self.get_hexagon(self.f_choice_number)
             for connected_aspetc in hexagon.connected_aspects:
                 connected_aspetc.text = str(
-                    "speed:" + str(history_event.speed) + "\n" + "heading:" + str(history_event.heading))
+                    f"{history_event.name_var1}:" + " " + str(
+                        history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
+                        history_event.var2))
                 self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
             if current_time == int(self.history_events[-1].time):
                 pass
@@ -491,7 +483,9 @@ class Recursive:
 
         if self.history_events:
             history_iterator = self.history_event_generator()
-            self.history_times = {number for number in range(1, int(self.history_events[-1].time) + 1)}
+            for event in self.history_events:
+                self.history_times.add(event.time)
+            # self.history_times = {number for number in range(1, int(self.history_events[-1].time) + 1)}
 
         for event in self.scene_events:
             # it iterates into each row of sceneevents
@@ -519,8 +513,17 @@ class Recursive:
         return t
 
     def reset_loop(self):
-        self.seen_events.clear()
-        self.seen_screenshots.clear()
+        self.stop = True
         self.timer.stop()
         self.clock["text"] = ""
-        self.stop = True
+        if self.history_events:
+            self.history_events.clear()
+        if self.pre_screenshot_time:
+            self.seen_screenshots.clear()
+        self.hexagons.clear()
+        self.seen_events.clear()
+        self.scene_events.clear()
+
+
+
+
