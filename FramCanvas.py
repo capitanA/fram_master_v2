@@ -22,11 +22,21 @@ class FramCanvas(tk.Frame):
 
         self.xsb = tk.Scrollbar(self, orient="horizontal",
                                 command=self.canvas.xview)
-        # self.ysb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.ysb = tk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(xscrollcommand=self.xsb.set)
         self.canvas.configure(scrollregion=self.canvas.bbox("current"))
         self.xsb.grid(row=1, column=0, sticky="ew")
-        # self.ysb.grid(row=0, column=1, sticky="ns")
+        self.ysb.grid(row=0, column=1, sticky="ns")
+
+        self.canvas.bind("<ButtonPress-1>", self.scroll_start)
+        self.canvas.bind("<B1-Motion>", self.scroll_move)
+
+        # linux zoom
+        self.canvas.bind("<Button-4>", self.zoomer_p)
+        self.canvas.bind("<Button-5>", self.zoomer_m)
+
+        # windows scroll
+        self.canvas.bind("<MouseWheel>", self.zoomer)
 
         # self.canvas.configure(scrollregion=self.canvas.bbox("current"))
         # self.xsb.grid(row=1, column=0, sticky="ew")
@@ -36,6 +46,36 @@ class FramCanvas(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.logger = logger
         self.y_max = 0
+
+    def scroll_start(self, event):
+        self.canvas.scan_mark(event.x, event.y)
+
+    def scroll_move(self, event):
+        self.canvas.scan_dragto(event.x, event.y, gain=1)
+
+    def zoomer_p(self, event):
+        true_x = self.canvas.canvasx(event.x)
+        true_y = self.canvas.canvasy(event.y)
+        self.canvas.scale("all", true_x, true_y, 1.1, 1.1)
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def zoomer_m(self, event):
+        true_x = self.canvas.canvasx(event.x)
+        true_y = self.canvas.canvasy(event.y)
+        self.canvas.scale("all", true_x, true_y, 0.9, 0.9)
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def zoomer(self, event):
+        """
+        The zooming action
+        """
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+        true_x = self.canvas.canvasx(event.x)
+        true_y = self.canvas.canvasy(event.y)
+        if event.delta > 0:
+            self.canvas.scale("all", true_x, true_y, 1.1, 1.1)
+        elif event.delta < 0:
+            self.canvas.scale("all", true_x, true_y, 0.9, 0.9)
 
     def draw_polygon(self, hexagon):
         hexagon.drawn = self.canvas.create_polygon(hexagon.hex_aspects.outputs.x_c,

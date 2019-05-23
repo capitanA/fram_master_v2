@@ -88,9 +88,9 @@ class Start:
         if var.get() == "C":
             self.play_recursive()
         elif var.get() == "L":
-            self.play_linear_dynamic()
+            self.play_linear_dynamic(dynamic_flag=True)
         else:
-            pass
+            self.play_linear_dynamic(dynamic_flag=False)
             # play_linear_static()
 
     def play_recursive(self):
@@ -119,13 +119,14 @@ class Start:
                                     window_height=window_height, logger=logger, y_max=dynaFramCanvas.y_max)
         self.method.play_recursive()
 
-    def play_linear_dynamic(self):
+    def play_linear_dynamic(self, dynamic_flag):
         if not self.scene_event:
             messagebox.showinfo("oops", "upload the scenario first")
             return
+
         if self.history_event:
             self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
-                                 root=root,
+                                 root=root, show_hide_flag=show_hide_flag.get(),
                                  canvas=dynaFramCanvas.canvas,
                                  scene_events=self.scene_event.scene_events,
                                  history_events=self.history_event.history_events,
@@ -133,16 +134,18 @@ class Start:
                                  f_choice_number=self.history_event.f_choice_id,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max)
+                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max,
+                                 dynamic_flag=dynamic_flag)
         else:
 
             self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
-                                 root=root,
+                                 root=root, show_hide_flag=show_hide_flag.get(),
                                  canvas=dynaFramCanvas.canvas,
                                  scene_events=self.scene_event.scene_events,
                                  speed_mode=self.speed_mode.get(),
-                                 clock=CLOCK, window_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max)
+                                 clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
+                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max,
+                                 dynamic_flag=dynamic_flag)
         self.method.draw_model()
 
     # def play_linear_static():
@@ -198,6 +201,7 @@ class Start:
         root.update()
         logger.info("### Successfully Resetted!")
 
+
 if __name__ == '__main__':
 
     ## setting looger
@@ -216,8 +220,11 @@ if __name__ == '__main__':
 
     window_width = root.winfo_screenwidth()
     window_height = root.winfo_screenheight()
+    print(window_width)
     canvas_width = window_width * 0.75
     canvas_height = window_height * 0.75
+    print(canvas_width)
+
     x_coordinate = 0  # (screen_width/2)-(window_width/2)
     y_coordinate = 0  # (screen_height/2)-(window_height/2)
     root.geometry("%dx%d+%d+%d" % (window_width,
@@ -339,12 +346,16 @@ if __name__ == '__main__':
     ]
     var = tk.StringVar()
     var.set("C")  # initialize
-    #
+
     for text, mode in MODES:
         b = tk.Radiobutton(root, text=text,
                            variable=var, value=mode)
         b.pack(side='top', anchor="w")
-    #
+
+    show_hide_flag = tk.BooleanVar()
+    tk.Checkbutton(root,
+                   text="Show inactive\nfunctions",
+                   variable=show_hide_flag).pack(side='top', anchor="w")
     # show_hide_flag = tk.BooleanVar()
     # tk.Checkbutton(root,
     #                text="Show inactive\nfunctions",

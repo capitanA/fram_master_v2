@@ -31,7 +31,8 @@ class Hexagon:
     def __init__(self, id, name, x, y, connected_aspects, hex_aspects=None, drawn=None, drawn_text=None,
                  is_active=False,
                  is_end=False,
-                 index=0):
+                 index=0,
+                 cycle=0):
         self.name = name
         self.id = id
         self.x = x
@@ -43,6 +44,7 @@ class Hexagon:
         self.drawn = drawn
         self.drawn_text = drawn_text
         self.index = index
+        self.cycle = cycle
 
 
 class Aspects:
