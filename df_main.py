@@ -35,7 +35,7 @@ history_data = None
 class Start:
     def __init__(self, speed_mode=None):
         self.speed_mode = speed_mode
-        self.history_event = None
+        self.history_list = list()
         self.scene_event = None
         self.pre_screenshot_time = set()
         self.method = None
@@ -43,7 +43,7 @@ class Start:
     def history_data_upload(self, name, id):
         h_data = HistoryData(name, id, logger)
         h_data.history_upload()
-        self.history_event = h_data
+        self.history_list.append(h_data)
 
     def model_upload(self):
         dynaFramCanvas.model_upload(root, r)
@@ -98,17 +98,19 @@ class Start:
             messagebox.showinfo("oops", "upload the scenario first")
             return
 
-        if self.history_event:
+        # f_choice = self.history_event.f_choice,
+        # f_choice_number = self.history_event.f_choice_id
+
+        if self.history_list:
+            # pdb.set_trace()
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
                                     scene_events=self.scene_event.scene_events,
-                                    history_events=self.history_event.history_events,
-                                    f_choice=self.history_event.f_choice,
-                                    f_choice_number=self.history_event.f_choice_id,
+                                    history_list=self.history_list,
                                     canvas=dynaFramCanvas.canvas,
                                     speed_mode=self.speed_mode.get(), clock=CLOCK, window_width=window_width,
                                     window_height=window_height,
-                                    logger=logger, y_max=dynaFramCanvas.y_max)
+                                    logger=logger, user_logger=user_logger, y_max=dynaFramCanvas.y_max)
         else:
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
@@ -116,7 +118,8 @@ class Start:
                                     scene_events=self.scene_event.scene_events,
                                     speed_mode=self.speed_mode.get(),
                                     clock=CLOCK, window_width=window_width,
-                                    window_height=window_height, logger=logger, y_max=dynaFramCanvas.y_max)
+                                    window_height=window_height, logger=logger, user_logger=user_logger,
+                                    y_max=dynaFramCanvas.y_max)
         self.method.play_recursive()
 
     def play_linear_dynamic(self, dynamic_flag):
@@ -134,7 +137,8 @@ class Start:
                                  f_choice_number=self.history_event.f_choice_id,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max,
+                                 window_height=canvas_height, logger=logger,
+                                 y_max=dynaFramCanvas.y_max,
                                  dynamic_flag=dynamic_flag)
         else:
 
@@ -144,7 +148,8 @@ class Start:
                                  scene_events=self.scene_event.scene_events,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, y_max=dynaFramCanvas.y_max,
+                                 window_height=canvas_height, logger=logger,
+                                 y_max=dynaFramCanvas.y_max,
                                  dynamic_flag=dynamic_flag)
         self.method.draw_model()
 
@@ -201,18 +206,41 @@ class Start:
         root.update()
         logger.info("### Successfully Resetted!")
 
+    def setup_logger(self, name, log_file, level=logging.INFO):
+        """Function setup as many loggers as you want"""
+        formatter = logging.Formatter('%(asctime)s %(message)s')
+
+        handler = logging.FileHandler(log_file)
+        handler.setFormatter(formatter)
+
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        logger.addHandler(handler)
+
 
 if __name__ == '__main__':
 
-    ## setting looger
+    """ setting looger fo proggramer"""
     logging.basicConfig(filename="logs.log",
                         format='%(asctime)s %(message)s',
                         filemode='a+',
                         level=logging.INFO)
-    logger = logging.getLogger()
+
+    logger = logging.getLogger(__name__)
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     logger.addHandler(console)
+    """creating logger for user"""
+
+    user_logger = logging.getLogger("user_logger")
+    user_logger.setLevel(logging.WARNING)
+
+    formatter = logging.Formatter('%(asctime)s:%(message)s')
+
+    handler = logging.FileHandler("user_logger.log")
+    handler.setFormatter(formatter)
+
+    user_logger.addHandler(handler)
 
     ## init tkinter object
     root = tk.Tk()

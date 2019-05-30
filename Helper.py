@@ -3,13 +3,12 @@ from tkinter import filedialog
 from PIL import ImageGrab
 import numpy as np
 
-# from Recursive import Recursive
 from itertools import count
 import time
 import pdb
 
 import pyautogui
-
+from tkinter import messagebox
 import threading
 import os
 import cv2
@@ -17,6 +16,18 @@ import logging
 from FramShapes import Arc
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
+
+# """creating logger for user"""
+#
+# user_logger = logging.getLogger("user_logger")
+# user_logger.setLevel(logging.WARNING)
+#
+# formatter = logging.Formatter('%(asctime)s: %(name)s:%(message)s')
+#
+# handler = logging.FileHandler("user_logger.log")
+# handler.setFormatter(formatter)
+#
+# user_logger.addHandler(handler)
 
 
 def lcurve(canvas, x1, y1, x2, y2):
@@ -116,12 +127,27 @@ def take_o_name(aspect_in):
 
 # which connected_aspect should update,(connected_aspects is a list)
 def get_connector(event, connected_aspects):
-    if not event or not connected_aspects:
-        return None
+    # pdb.set_trace()
     for connected_aspect in connected_aspects:
         if connected_aspect.hex_in_num == int(event.dstream_coupled_func):
             return connected_aspect
-    return None
+        else:
+            return None
+
+    # if not event or not connected_aspects:
+    #
+    # user_logger.info("oops", " there was a discrepancy between model and scenario file at the time of {}".format(
+    #     event.time_stamp))
+    #     return None
+
+    # return None
+
+
+# def user_log(current_time, severity, msg):
+#     text = "[{}] {}: {}".format(current_time, severity, msg)
+#     print(text)
+#     with open("user_log.log", "w+") as file:
+#         file.write(text)
 
 
 """

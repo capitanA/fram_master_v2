@@ -4,8 +4,8 @@ import pdb
 
 
 class Event:
-    def __init__(self, time_stamp=0, active_func=0, active_func_output="", dstream_coupled_func=0,
-                 Coupled_Function_Aspect="", time_tolerance=0, draw_active_func_output=None):
+    def __init__(self, time_stamp=0, active_func=0, active_func_output=None, dstream_coupled_func=0,
+                 coupled_aunction_aspect=None, time_tolerance=0, draw_active_func_output=None):
         """Describes the variables inputted from a scenario file
 
         time_stamp: the time stamp of each data point
@@ -18,7 +18,7 @@ class Event:
         self.active_func = active_func
         self.active_func_output = active_func_output
         self.dstream_coupled_func = dstream_coupled_func
-        self.dstream_func_aspect = Coupled_Function_Aspect
+        self.dstream_func_aspect = coupled_aunction_aspect
         self.time_tolerance = time_tolerance
         self.draw_active_func_output = draw_active_func_output
 
@@ -52,7 +52,20 @@ class SceneEvent:
                     elif element.tag == "DownstreamCoupledFunction" or element.tag == "Downstream Coupled Function":
                         event.downstream_coupled_function = int(element.text)
                     elif element.tag == "CoupledFunctionAspect" or element.tag == "Coupled Function Aspect" or element.tag == "Coupled Function":
-                        event.Coupled_Function_Aspect = element.text
+                        if element.tag == 1:
+                            event.time_stamp = "Control"
+                        elif element.tag == 2:
+                            event.time_stamp = "Time"
+                        elif element.tag == 3:
+                            event.time_stamp = "Input"
+                        elif element.tag == 4:
+                            event.time_stamp = "Preconditions"
+                        elif element.tag == 5:
+                            event.time_stamp = "Resources"
+                        elif element.tag == 6:
+                            event.time_stamp = "Output"
+                        else:
+                            event.Coupled_Function_Aspect = element.text
                     # elif element.tag == "TimeTolerance":
                     #     event.time_tolerance = int(element.text)
                     self.scene_events.append(event)

@@ -180,8 +180,8 @@ class Linear:
                                                    hexagon.hex_aspects.resources.y_c,
                                                    fill="white", outline="black")
 
-    def draw_polygon_text(self, hexagon, text_width, x, y):
-        hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
+    def draw_polygon_text(self, hexagon, text_width):
+        hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
                                                      text=hexagon.name,
                                                      font=("Helvetica", 7),
                                                      width=text_width)
@@ -200,7 +200,6 @@ class Linear:
                     self.canvas.itemconfigure(value.drawn, fill="tomato")
 
         for connected_aspect in hexagon.connected_aspects:
-
             self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="tomato")
             self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
 
@@ -274,13 +273,14 @@ class Linear:
             out_hexagon.connected_aspects.append(connected_aspect)
 
     def create_hexagon(self, event, is_end):
+        # pdb.set_trace()
         if event.active_func == 0:
             self.cycle = self.cycle + 1
             # this index is for hexagon's number
         index = (len(self.hexagons_from_model) * self.cycle) + event.active_func
 
         hexagon = self.get_hexagon(event.active_func)
-        x = 1270 + (event.time_stamp * 100)
+        x = int(self.canvas.winfo_width()) + int(event.time_stamp * 100)
         y = hexagon.y
         aspects = Aspects(outputs=Aspect(o_name="O", x=x, y=y, r=r),
                           controls=Aspect(o_name="C", x=x, y=y, r=r),
@@ -292,7 +292,6 @@ class Linear:
         self.hexagons.append(Hexagon(id=hexagon.id, name=hexagon.name, x=x, y=hexagon.y,
                                      hex_aspects=aspects, connected_aspects=[], is_end=is_end, index=index,
                                      cycle=self.cycle))
-
         if event.time_stamp not in self.seen_events:
             self.uniq_hexagon.append(Hexagon(id=hexagon.id, name=hexagon.name, x=x, y=hexagon.y,
                                              hex_aspects=aspects, connected_aspects=[], is_end=is_end, index=index,
@@ -310,27 +309,27 @@ class Linear:
         # pdb.set_trace()
         return res
 
-    def create_inactive_hexagon(self, inactive_hex, list_index, cycle_index, scale):
+    def create_inactive_hexagon(self, inactive_hex, list_index, cycle_index):
         # hexagon = self.get_hexagon(hex_inactive_id)
         # pdb.set_trace()
 
         if list_index == 0 and cycle_index == 0:
-            x = self.canvas.winfo_width() + inactive_hex.x-200
+            x = self.canvas.winfo_width() + inactive_hex.x - 200
             self.pre_hex = inactive_hex.x
 
         elif list_index != 0 and cycle_index == 0:
             # x = (((inactive_hex.x - self.pre_hex) * scale)-0.5) + self.canvas.winfo_width() + inactive_hex.x-150
-            x = self.canvas.winfo_width() + inactive_hex.x-200
+            x = self.canvas.winfo_width() + inactive_hex.x - 200
             self.pre_hex = inactive_hex.x
 
         elif list_index == 0 and cycle_index != 0:
             result = self.get_coord(cycle_index)
-            x = self.canvas.winfo_width() + (result * 100) + inactive_hex.x-200
+            x = self.canvas.winfo_width() + (result * 100) + inactive_hex.x - 200
             self.pre_hex = inactive_hex.x
 
         elif list_index != 0 and cycle_index != 0:
             result = self.get_coord(cycle_index)
-            hexagon_x = self.canvas.winfo_width() + (result * 100) + inactive_hex.x-200
+            hexagon_x = self.canvas.winfo_width() + (result * 100) + inactive_hex.x - 200
             x = inactive_hex.x + hexagon_x
             # x = (((inactive_hex.x - self.pre_hex) * scale)-0.5) + inactive_hex.x + hexagon_x-150
             self.pre_hex = inactive_hex.x
@@ -376,7 +375,7 @@ class Linear:
         for hexagon in self.hexagons:
             text_width = 1.5 * (hexagon.hex_aspects.controls.x_c - hexagon.hex_aspects.times.x_c)
             self.draw_polygon(hexagon, False)
-            self.draw_polygon_text(hexagon, text_width, hexagon.x, hexagon.y)
+            self.draw_polygon_text(hexagon, text_width)
             self.draw_oval(hexagon)
             self.draw_oval_text(hexagon)
             if not hexagon.is_end:
@@ -404,12 +403,41 @@ class Linear:
                 font=("Helvetica", 8),
                 width=line_text_width)
 
+    def check_for_conflict(self, hexagon):
+        # pdb.set_trace()
+        for hexa in self.active_hex[hexagon.cycle]:
+            # pdb.set_trace()
+            if hexa.x - 100 < hexagon.x < hexa.x and hexa.y - 100 < hexagon.y < hexa.y + 100:
+                x = hexagon.x - 100
+                hexagon.x = x
+                aspects = Aspects(outputs=Aspect(o_name="O", x=x, y=hexagon.y, r=r),
+                                  controls=Aspect(o_name="C", x=x, y=hexagon.y, r=r),
+                                  times=Aspect(o_name="T", x=x, y=hexagon.y, r=r),
+                                  inputs=Aspect(o_name="I", x=x, y=hexagon.y, r=r),
+                                  preconditions=Aspect(o_name="P", x=x, y=hexagon.y, r=r),
+                                  resources=Aspect(o_name="R", x=x, y=hexagon.y, r=r))
+                hexagon.hex_aspects = aspects
+            elif hexa.x < hexagon.x < hexa.x + 100 and hexa.y - 100 < hexagon.y < hexa.y + 100:
+                x = hexagon.x + 100
+                hexagon.x = x
+                aspects = Aspects(outputs=Aspect(o_name="O", x=x, y=hexagon.y, r=r),
+                                  controls=Aspect(o_name="C", x=x, y=hexagon.y, r=r),
+                                  times=Aspect(o_name="T", x=x, y=hexagon.y, r=r),
+                                  inputs=Aspect(o_name="I", x=x, y=hexagon.y, r=r),
+                                  preconditions=Aspect(o_name="P", x=x, y=hexagon.y, r=r),
+                                  resources=Aspect(o_name="R", x=x, y=hexagon.y, r=r))
+                hexagon.hex_aspects = aspects
+        else:
+            return
+
     def draw_inactive_hexagon(self):
         for list in self.inactive_hex:
             for hexagon in list:
+                self.check_for_conflict(hexagon)
                 text_width = 1.5 * (hexagon.hex_aspects.controls.x_c - hexagon.hex_aspects.times.x_c)
+                # pdb.set_trace()
                 self.draw_polygon(hexagon, True)
-                self.draw_polygon_text(hexagon, text_width, hexagon.x, hexagon.y)
+                self.draw_polygon_text(hexagon, text_width)
                 self.draw_oval(hexagon)
                 self.draw_oval_text(hexagon)
                 self.draw_line_inactive_funcs(hexagon.connected_aspects)
@@ -453,36 +481,43 @@ class Linear:
                     if hexagon.cycle == index and hexagon.id == active_hex_id:
                         self.active_hex[-1].append(hexagon)
 
-    def create_model_from_model(self):
-        self.active_hex_id.append([])
+    def create_model_from_model(self, show_hide_flag):
+
         """create active hexagons for drawing"""
         # for i, event in enumerate(self.scene_events):
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
             is_end = (i + 1) == len(self.uniq_activefunc_sceneevents)
+            # pdb.set_trace()
             self.create_hexagon(event, is_end)
-        # this is for creating a list in which there are those hexagons which should be activated
-        for event in self.uniq_activefunc_sceneevents:
-            if event.active_func != 0:  # this shouldn't check by func number 0 but now we checked by that
-                self.active_hex_id[-1].append(event.active_func)
-            else:
-                self.active_hex_id.append([])
+
         # creating the connected aspect for activated hexagon
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
             self.create_connected_aspect(event, i)
 
-        """ create inactive hexagons for drawing"""
-        self.create_active_hex(self.active_hex_id)
-        for cycle_index, item in enumerate(self.active_hex):
-            self.inactive_hex.append([])
-            self.get_inactives(item)
-            inactive_hex_list = self.sort_inactive_hex([self.get_hexagon(hex_id) for hex_id in self.inactive_hex_id])
-            model_width = self.model_scale()
-            shrink_scale = (self.duration[cycle_index] * 100) / model_width
-            for hex_index, inactive_hex in enumerate(inactive_hex_list):
-                self.create_inactive_hexagon(inactive_hex, hex_index, cycle_index, shrink_scale)
+        if show_hide_flag:
+            self.active_hex_id.append([])
+            """this is for creating a list in which there are those hexagons which should be activated"""
+            for event in self.uniq_activefunc_sceneevents:
+                if event.active_func != 0:  # this shouldn't check by func number 0 but now we checked by that
+                    self.active_hex_id[-1].append(event.active_func)
+                else:
+                    self.active_hex_id.append([])
+
+            """ create inactive hexagons for drawing"""
+            self.create_active_hex(self.active_hex_id)
+            for cycle_index, item in enumerate(self.active_hex):
+                self.inactive_hex.append([])
+                self.get_inactives(item)
+                inactive_hex_list = self.sort_inactive_hex(
+                    [self.get_hexagon(hex_id) for hex_id in self.inactive_hex_id])
+                # model_width = self.model_scale()
+                # shrink_scale = (self.duration[cycle_index] * 100) / model_width
+                for hex_index, inactive_hex in enumerate(inactive_hex_list):
+                    self.create_inactive_hexagon(inactive_hex, hex_index, cycle_index)
 
     def create_model_from_scenario(self):
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
+            print("this is time stamp", event.time_stamp)
             is_end = (i + 1) == len(self.uniq_activefunc_sceneevents)
             self.create_hexagon(event, is_end)
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
@@ -505,11 +540,11 @@ class Linear:
         for ind, hexagon in enumerate(self.combine_hexes[cycle]):
 
             # for index, hexagon in enumerate(list):
-                # pdb.set_trace()
+            # pdb.set_trace()
 
             if hexagon.id == int(hex_in_num):
-                    # self.inactive_hex.pop(index)
-                    # self.combine_hexes[ind].pop(index)
+                # self.inactive_hex.pop(index)
+                # self.combine_hexes[ind].pop(index)
 
                 return hexagon
 
@@ -546,31 +581,30 @@ class Linear:
                         hexagon.connected_aspects.extend(self.create_inactive_connected_aspect(hexagon,
                                                                                                hexagon_model.connected_aspects))
 
-
     def combine_inactive_with_active(self, iterator):
         for item in self.active_hex:
             self.combine_hexes.append(next(iterator) + item)
 
     def draw_model(self):
+        # pdb.set_trace()
         if self.show_hide_flag:
             self.get_uniq_activefunc_sceneevents()
             self.get_uniq_timestamp_sceneevents()
             self.get_cycle_duration_generator()
-            self.create_model_from_model()
-            iterator_inactivehex = self.next_item_in_inactivehex()  # build an generator by which gets the next item in inactive_hex
+            self.create_model_from_model(show_hide_flag=True)
+            iterator_inactivehex = self.next_item_in_inactivehex()  # building an generator by which gets the next item in inactive_hex
             self.combine_inactive_with_active(
-                iterator_inactivehex)  # combine the inactive and active list for the nest step
+                iterator_inactivehex)  # combining inactive and active list for the next step
             self.draw_active_hexagon()
             self.draw_inactive_hexagon()
             self.get_connected_aspect_from_model()
-
-
             if self.dynamic_flag:
                 self.play_linear()
         else:
-            # self.get_uniq_activefunc_sceneevents()
-            # self.get_uniq_timestamp_sceneevents()
-            self.create_model_from_scenario()
+            self.get_uniq_activefunc_sceneevents()
+            self.get_uniq_timestamp_sceneevents()
+            self.get_cycle_duration_generator()
+            self.create_model_from_model(show_hide_flag=False)
             self.draw_active_hexagon()
             if self.dynamic_flag:
                 self.play_linear()
@@ -606,6 +640,7 @@ class Linear:
 
             self.time += 1
             self.clock['text'] = f"TIME:{str(self.time)}s" if self.time > -1 else 0
+
             # checking for history_data
             if self.history_events and self.time in self.history_times:
                 history_event = next(history_iterator)
@@ -633,3 +668,13 @@ class Linear:
         self.hexagons.clear()
         self.seen_events.clear()
         self.scene_events.clear()
+        self.uniq_timestamp_sceneevents.clear()
+        self.uniq_activefunc_sceneevents.clear()
+        self.hexa.clear()
+        self.active_hex_id.clear()
+        self.inactive_hex_id.clear()
+        self.inactive_hex.clear()
+        self.pre_hex = 0
+        self.duration.clear()
+        self.combine_hexes.clear()
+        self.active_hex.clear()

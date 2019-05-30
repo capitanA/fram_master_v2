@@ -4,7 +4,7 @@ import pdb
 
 
 class Event:
-    def __init__(self, name_var1="", name_var2="", time=0.0, var1=0.0, var2=0.0):
+    def __init__(self, name_var1=None, name_var2=None, time=0.0, var1=0.0, var2=0.0):
         self.time = time
         self.var1 = var1
         self.var2 = var2
@@ -23,6 +23,7 @@ class HistoryData:
         self.f_choice = f_choice
         self.f_choice_id = f_choice_id
         self.history_events = []
+        self.history_list = list()
         self.logger = logger
 
     def history_upload(self):
@@ -35,15 +36,20 @@ class HistoryData:
                 name_var1 = row[1]
                 name_var2 = row[2]
             else:
+
                 self.history_events.append(
                     Event(name_var1=name_var1, name_var2=name_var2, time=float(row[0]), var1=float(row[1]),
                           var2=float(row[2])))
+        # self.history_list.append([])
+        self.history_list.append(self.history_events)
+        # pdb.set_trace()
 
-            #     keys = (row[0], row[1], row[2])
-            # else:
-            #     self.history_events.append(Event(keys, (float(row[0]), float(row[1]), float(row[2]))))
+        #     keys = (row[0], row[1], row[2])
+        # else:
+        #     self.history_events.append(Event(keys, (float(row[0]), float(row[1]), float(row[2]))))
 
         self.logger.debug("### history has been uploaded")
+        return self.history_list
 
     def reset(self):
         self.history_events.clear()

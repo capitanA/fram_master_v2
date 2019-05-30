@@ -10,7 +10,7 @@ from PIL import ImageGrab
 from tkinter import messagebox
 import numpy as np
 # from Helper import Timer
-from Helper import get_connector, get_arc_properties, MyThread, recording_video
+from Helper import get_connector, get_arc_properties, MyThread, recording_video, take_o_name
 import multiprocessing
 import threading
 import ipdb
@@ -20,21 +20,23 @@ DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 class Recursive:
 
-    def __init__(self, pre_screenshot_time=None, history_events=None, hexagons=None, root=None, scene_events=None,
+    def __init__(self, pre_screenshot_time=None, history_list=None, hexagons=None, root=None,
+                 scene_events=None,
                  canvas=None,
                  speed_mode=None,
-                 f_choice="",
-                 f_choice_number=0,
+                 # f_choice="",
+                 # f_choice_number=0,
                  clock=None,
                  window_width=None,
                  window_height=None,
                  logger=None,
+                 user_logger=None,
                  stop=False, y_max=None):
         self.seen_events = []
         self.seen_screenshots = []
         self.speed_mode = speed_mode
         self.pre_screenshot_time = pre_screenshot_time
-        self.history_events = history_events
+        self.history_list = history_list
         self.seen_history_events = []
         # self.previous_text_list = []
         self.canvas = canvas
@@ -43,17 +45,19 @@ class Recursive:
 
         self.hexagons = hexagons
         self.scene_events = scene_events
-        self.f_choice = f_choice
-        self.f_choice_number = f_choice_number
+        # self.f_choice = f_choice
+        # self.f_choice_number = f_choice_number
         self.history_times = set()
         self.root = root
         self.clock = clock
         self.logger = logger
+        self.user_logger = user_logger
         self.timer = None
         self.stop = stop
         self.y_max = y_max
         self.index = 0
         self.video_recorder()
+        self.events_history = list()
         """middle point for curve of last hexagon """
 
     def video_recorder(self):
@@ -319,8 +323,7 @@ class Recursive:
         ## activating event text
         line_text_width = min(0.8 * abs(connected_aspect.aspect_out.x_sline
                                         - connected_aspect.aspect_in.x_sline), 4 * 40)
-        if self.f_choice and hexagon.name == self.f_choice:
-            # if self.f_choice and hexagon.name == self.f_choice and not hexagon.is_end:
+        if self.history_list and hexagon.name in [item.f_choice for item in self.history_list]:
             pass
 
         elif hexagon.is_end:
@@ -362,6 +365,17 @@ class Recursive:
                 return event.time_stamp - time_stamp
         return 0
 
+    def create_flaw_connected_aspect(self, event, hexagon):
+        hex_in_num = event.dstream_coupled_func
+        hexagon_in = self.get_hexagon(hex_in_num)
+        aspect_in = getattr(hexagon_in.hex_aspects, take_o_name(event.dstream_func_aspect))
+        aspect_out = hexagon.hex_aspects.outputs
+        text = event.active_func_output
+        connected_aspect = AspectConnector(aspect_in=aspect_in, aspect_out=aspect_out, hex_in_num=hex_in_num, text=text,
+                                           is_active=False)
+        hexagon.connected_aspects.append(connected_aspect)
+        return connected_aspect
+
     def activate_event(self, event):
         hexagon = self.get_hexagon(event.active_func)
         hex_in = int(event.dstream_coupled_func)
@@ -378,8 +392,18 @@ class Recursive:
                 hexagon.connected_aspects.append(connected_aspect)
         else:
             connected_aspect = get_connector(event, hexagon.connected_aspects)
-            connected_aspect.text = event.active_func_output
-        # there should be a explanation here
+
+            """this part of code is when there is no connected aspect for a function but the scenario
+             said that there should be, so we create a new connected aspect"""
+            if connected_aspect:
+                connected_aspect.text = event.active_func_output
+            else:
+                self.user_logger.warning(
+                    "oops there was a discrepancy between model and scenario file at the time of {}".format(
+                        event.time_stamp))
+                connected_aspect = self.create_flaw_connected_aspect(event, hexagon)
+
+        """if the connected aspect didn't get acctivated so it passed to acctivator to be acctivated. """
         if connected_aspect:
             if not connected_aspect.is_active:
                 self.activator(event, hexagon, self.get_duration(event.time_stamp), connected_aspect)
@@ -408,10 +432,24 @@ class Recursive:
                 self.reset_actives()
 
     def history_event_generator(self):
-        for history_event in self.history_events:
-            yield history_event
+        # for even in self.history_events:
+        #     yield event
 
-    def loop_recursive(self, time_stamp, directory_new, history_times=None, history_iterator=None):
+        for history_event in self.history_list:
+            for event in history_event:
+                yield event
+
+    def get_history_events(self, current_time):
+        self.events_history.clear()
+        # pdb.set_trace()
+        for history_data in self.history_list:
+            for event in history_data.history_events:
+                if event.time == current_time:
+                    self.events_history.append(
+                        {"event": event, "f_choice": history_data.f_choice, "f_choice_id": history_data.f_choice_id})
+        return self.events_history
+
+    def loop_recursive(self, time_stamp, directory_new, history_times=None):
         current_time = self.timer.current_time
         if current_time == time_stamp and time_stamp not in self.seen_events:
             # self.logger.info("### current time is: {}".format(current_time))
@@ -423,18 +461,24 @@ class Recursive:
 
             ## checking for existance of history events
 
-        if self.history_events and current_time in history_times and current_time not in self.seen_history_events:
-            history_event = next(history_iterator)
-            self.seen_history_events.append(int(current_time))
-            hexagon = self.get_hexagon(self.f_choice_number)
-            for connected_aspetc in hexagon.connected_aspects:
-                connected_aspetc.text = str(
-                    f"{history_event.name_var1}:" + " " + str(
-                        history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
-                        history_event.var2))
-                self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
-            if current_time == int(self.history_events[-1].time):
-                pass
+        if self.history_list and current_time in history_times and current_time not in self.seen_history_events:
+            # history_event = next(history_iterator)
+            # trial
+
+            events_history = self.get_history_events(current_time)
+            for event in events_history:
+                # trial
+                # pdb.set_trace()
+                self.seen_history_events.append(int(current_time))
+                hexagon = self.get_hexagon(event["f_choice_id"])
+                for connected_aspetc in hexagon.connected_aspects:
+                    connected_aspetc.text = str(
+                        f"{event['event'].name_var1}:" + " " + str(
+                            event['event'].var1) + "\n" + f"{event['event'].name_var2}:" + " " + str(
+                            event['event'].var2))
+                    self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
+                # if current_time == int(self.history_list[-1][-1].time):  # this condition is not stable
+                #     pass
 
         ## checking for having a predfine screen shot
         if current_time in self.pre_screenshot_time and current_time not in self.seen_screenshots:
@@ -478,30 +522,35 @@ class Recursive:
 
         # we will check for update every [interval] milliseconds
         interval = DIC_TIME[self.speed_mode] / (5 * 1000)
-        # interval = DIC_TIME[self.speed_mode] / (10)
         self.logger.info("### interval is: {}".format(interval))
 
-        if self.history_events:
-            history_iterator = self.history_event_generator()
-            for event in self.history_events:
-                self.history_times.add(event.time)
-            # self.history_times = {number for number in range(1, int(self.history_events[-1].time) + 1)}
+        # if self.history_events:
+        # history_iterator = self.history_event_generator()
+        # for event in self.history_events:
+        #     self.history_times.add(event.time)
+
+        if self.history_list:
+            # history_iterator = self.history_event_generator()
+            # pdb.set_trace()
+            for history_data in self.history_list:
+                for event in history_data.history_events:
+                    self.history_times.add(event.time)
 
         for event in self.scene_events:
             # it iterates into each row of sceneevents
             if event.time_stamp in self.seen_events:
                 continue
-            if event.time_stamp == 0 and not self.history_events:
+            if event.time_stamp == 0 and not self.history_list:
                 self.loop_recursive(event.time_stamp, directory_new)
-            elif event.time_stamp != 0 and not self.history_events:
+            elif event.time_stamp != 0 and not self.history_list:
                 self.set_interval(self.loop_recursive, interval, event.time_stamp,
                                   directory_new, self.history_times)
-            elif event.time_stamp == 0 and self.history_events:
-                self.loop_recursive(event.time_stamp, directory_new, self.history_times, history_iterator)
+            elif event.time_stamp == 0 and self.history_list:
+                self.loop_recursive(event.time_stamp, directory_new, self.history_times)
 
-            elif event.time_stamp != 0 and self.history_events:
+            elif event.time_stamp != 0 and self.history_list:
                 self.set_interval(self.loop_recursive, interval, event.time_stamp,
-                                  directory_new, self.history_times, history_iterator)
+                                  directory_new, self.history_times)
 
     def set_interval(self, func, sec, *argv):
         def func_wrapper():
@@ -516,14 +565,10 @@ class Recursive:
         self.stop = True
         self.timer.stop()
         self.clock["text"] = ""
-        if self.history_events:
-            self.history_events.clear()
+        if self.history_list:
+            self.history_list.clear()
         if self.pre_screenshot_time:
             self.seen_screenshots.clear()
         self.hexagons.clear()
         self.seen_events.clear()
         self.scene_events.clear()
-
-
-
-
