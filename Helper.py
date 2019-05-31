@@ -7,7 +7,6 @@ from itertools import count
 import time
 import pdb
 
-import pyautogui
 from tkinter import messagebox
 import threading
 import os

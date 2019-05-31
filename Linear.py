@@ -24,7 +24,7 @@ r = 40
 
 
 class Linear:
-    def __init__(self, pre_screenshot_time=None, canvas_width=0, show_hide_flag=False, history_events=None,
+    def __init__(self, pre_screenshot_time=None, canvas_width=0, show_hide_flag=False, history_list=None,
                  hexagons=None, root=None,
                  scene_events=None,
                  canvas=None,
@@ -42,15 +42,13 @@ class Linear:
         self.seen_screenshots = []
         self.speed_mode = speed_mode
         self.pre_screenshot_time = pre_screenshot_time
-        self.history_events = history_events
+        self.history_list = history_list
         self.seen_history_events = []
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
         self.cavas_width = canvas_width
         self.show_hide_flag = show_hide_flag
-        self.f_choice = f_choice
-        self.f_choice_number = f_choice_number
         self.history_times = set()
         self.root = root
         self.clock = clock
@@ -77,6 +75,7 @@ class Linear:
         self.duration = list()
         self.combine_hexes = list()
         self.active_hex = list()
+        self.vid = None
 
     def get_hexagon(self, id):
         for hexagon in self.hexagons_from_model:
@@ -610,9 +609,9 @@ class Linear:
                 self.play_linear()
 
     def play_linear(self):
-        if self.history_events:
+        if self.history_list:
 
-            for event in self.history_events:
+            for event in self.history_list:
                 self.history_times.add(event.time)
             history_iterator = self.history_event_generator()
             directory_new = self.check_prescreenshot()
@@ -621,9 +620,10 @@ class Linear:
         else:
             directory_new = self.check_prescreenshot()
             self.loop_linear(directory_new=directory_new, history_iterator=None)
+        self.set_video()
 
     def history_event_generator(self):
-        for history_event in self.history_events:
+        for history_event in self.history_list:
             yield history_event
 
     def loop_linear(self, directory_new, history_iterator):
@@ -642,16 +642,17 @@ class Linear:
             self.clock['text'] = f"TIME:{str(self.time)}s" if self.time > -1 else 0
 
             # checking for history_data
-            if self.history_events and self.time in self.history_times:
-                history_event = next(history_iterator)
-                hexagons = self.get_hexagon_from_selfhexagons(self.f_choice_number)
-                for hexa in hexagons:
-                    for connected_aspect in hexa.connected_aspects:
-                        connected_aspect.text = str(
-                            f"{history_event.name_var1}:" + " " + str(
-                                history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
-                                history_event.var2))
-                        self.canvas.itemconfigure(connected_aspect.drawn_text, text=connected_aspect.text)
+            if self.history_list and self.time in self.history_times:
+                pass
+                # history_event = next(history_iterator)
+                # hexagons = self.get_hexagon_from_selfhexagons(self.f_choice_number)
+                # for hexa in hexagons:
+                #     for connected_aspect in hexa.connected_aspects:
+                #         connected_aspect.text = str(
+                #             f"{history_event.name_var1}:" + " " + str(
+                #                 history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
+                #                 history_event.var2))
+                #         self.canvas.itemconfigure(connected_aspect.drawn_text, text=connected_aspect.text)
 
             x = (100 / (self.uniq_hexagon[-1].hex_aspects.outputs.x_sline + 50)) * self.time
             self.canvas.xview_moveto(x)
@@ -661,8 +662,8 @@ class Linear:
         self.stop = True
         self.clock["text"] = ""
         self.canvas.xview_moveto(0)
-        if self.history_events:
-            self.history_events.clear()
+        if self.history_list:
+            self.history_list.clear()
         if self.pre_screenshot_time:
             self.seen_screenshots.clear()
         self.hexagons.clear()
@@ -678,3 +679,18 @@ class Linear:
         self.duration.clear()
         self.combine_hexes.clear()
         self.active_hex.clear()
+
+    def set_video(self):
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.vid = cv2.VideoWriter('record.avi', fourcc, 5, (int(self.window_width*2), int(self.window_height*2)))
+        self.loop_video()
+
+    def loop_video(self):
+        if self.time != self.max_time and not self.stop:
+            img = ImageGrab.grab(bbox=(0, 0, self.window_width*2, self.window_height*2))
+            frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+            self.vid.write(frame)
+            self.clock.after(int(DIC_TIME[self.speed_mode]/10), self.loop_video)
+        else:
+            print("End of recording")
+            self.vid.release()

@@ -127,14 +127,11 @@ class Start:
             messagebox.showinfo("oops", "upload the scenario first")
             return
 
-        if self.history_event:
+        if self.history_list:
             self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                  root=root, show_hide_flag=show_hide_flag.get(),
                                  canvas=dynaFramCanvas.canvas,
-                                 scene_events=self.scene_event.scene_events,
-                                 history_events=self.history_event.history_events,
-                                 f_choice=self.history_event.f_choice,
-                                 f_choice_number=self.history_event.f_choice_id,
+                                 history_list=self.history_list,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=canvas_width,
                                  window_height=canvas_height, logger=logger,
@@ -147,7 +144,7 @@ class Start:
                                  canvas=dynaFramCanvas.canvas,
                                  scene_events=self.scene_event.scene_events,
                                  speed_mode=self.speed_mode.get(),
-                                 clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
+                                 clock=CLOCK, window_width=window_width,
                                  window_height=canvas_height, logger=logger,
                                  y_max=dynaFramCanvas.y_max,
                                  dynamic_flag=dynamic_flag)
