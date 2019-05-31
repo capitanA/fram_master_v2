@@ -1,6 +1,7 @@
 import csv
 import xml.etree.cElementTree as ET
 import pdb
+from Helper import check_which_aspect
 
 
 class Event:
@@ -36,13 +37,16 @@ class SceneEvent:
                     line_count += 1
                     continue
                 else:
-                    self.scene_events.append(Event(int(row[0]), int(row[1]), row[2], int(row[3]), row[4], row[5]))
+                    row_4 = check_which_aspect(row[4])
+                    self.scene_events.append(Event(int(row[0]), int(row[1]), row[2], int(row[3]), row_4, row[5]))
                     line_count += 1
         elif filetype == "xml":
+
             xml_file = ET.parse(filename).getroot()
             for row in xml_file.iter("row"):
                 event = Event()
                 for element in row:
+                    # pdb.set_trace()
                     if element.tag == "Time":
                         event.time_stamp = int(element.text)
                     elif element.tag == "ActiveFunction" or element.tag == "Active Function":
@@ -52,18 +56,18 @@ class SceneEvent:
                     elif element.tag == "DownstreamCoupledFunction" or element.tag == "Downstream Coupled Function":
                         event.downstream_coupled_function = int(element.text)
                     elif element.tag == "CoupledFunctionAspect" or element.tag == "Coupled Function Aspect" or element.tag == "Coupled Function":
-                        if element.tag == 1:
-                            event.time_stamp = "Control"
-                        elif element.tag == 2:
-                            event.time_stamp = "Time"
-                        elif element.tag == 3:
-                            event.time_stamp = "Input"
-                        elif element.tag == 4:
-                            event.time_stamp = "Preconditions"
-                        elif element.tag == 5:
-                            event.time_stamp = "Resources"
-                        elif element.tag == 6:
-                            event.time_stamp = "Output"
+                        if element.text == '1':
+                            event.Coupled_Function_Aspect = "Control"
+                        elif element.text == '2':
+                            event.Coupled_Function_Aspect = "Time"
+                        elif element.text == '3':
+                            event.Coupled_Function_Aspect = "Input"
+                        elif element.text == '4':
+                            event.Coupled_Function_Aspect = "Preconditions"
+                        elif element.text == '5':
+                            event.Coupled_Function_Aspect = "Resources"
+                        elif element.text == '6':
+                            event.Coupled_Function_Aspect = "Output"
                         else:
                             event.Coupled_Function_Aspect = element.text
                     # elif element.tag == "TimeTolerance":

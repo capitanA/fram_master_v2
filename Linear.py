@@ -10,14 +10,14 @@ from PIL import ImageGrab
 from tkinter import messagebox
 import numpy as np
 # from Helper import Timer
-from Helper import get_connector, get_arc_properties, MyThread, recording_video
+from Helper import get_connector, get_arc_properties, MyThread, check_which_aspect
 import multiprocessing
 import threading
 import ipdb
 from functools import partial
 from functools import partial, update_wrapper
 
-from Helper import lcurve, take_o_name, get_connector
+from Helper import lcurve, take_o_name, get_history_events
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 r = 40
@@ -29,13 +29,12 @@ class Linear:
                  scene_events=None,
                  canvas=None,
                  speed_mode=None,
-                 f_choice="",
-                 f_choice_number=0,
+                 history_list=None,
                  clock=None,
                  window_width=None,
                  window_height=None,
                  logger=None,
-                 stop=False, y_max=None, dynamic_flag=None):
+                 stop=False, dynamic_flag=None):
         self.hexagons_from_model = hexagons
         self.scene_events = scene_events
         self.seen_events = []
@@ -49,13 +48,11 @@ class Linear:
         self.window_height = window_height
         self.cavas_width = canvas_width
         self.show_hide_flag = show_hide_flag
-        self.f_choice = f_choice
-        self.f_choice_number = f_choice_number
+        self.history_list = history_list
         self.history_times = set()
         self.root = root
         self.clock = clock
         self.logger = logger
-        self.timer = None
         self.stop = stop
         self.dynamic_flag = dynamic_flag
         self.hexagons = []
@@ -63,7 +60,6 @@ class Linear:
         self.canvas.delete("all")
         self.time = -1
         self.max_time = self.scene_events[-1].time_stamp
-        self.min_time = self.scene_events[0].time_stamp
         self.uniq_timestamp_sceneevents = list()
         self.uniq_activefunc_sceneevents = list()
         self.time_stamp = -1
@@ -77,6 +73,51 @@ class Linear:
         self.duration = list()
         self.combine_hexes = list()
         self.active_hex = list()
+        self.vid = None
+
+    def set_video(self):
+        """creating the file and directory for video"""
+        file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
+        cwd = os.getcwd()
+        directory = os.path.join(cwd, "Videos")
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        directory_new = os.path.join(directory, file_name.split("/")[-1])
+        if len(directory_new) < 5 or directory_new[-4:] != ".avi":
+            directory_new += ".avi"
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.vid = cv2.VideoWriter(directory_new, fourcc, 5, (int(self.window_width * 2), int(self.window_height * 2)))
+        self.loop_video()
+
+    def loop_video(self):
+        if self.time != self.max_time and not self.stop:
+            img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
+            frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+            self.vid.write(frame)
+            self.clock.after(int(DIC_TIME[self.speed_mode] / 24), self.loop_video)
+        else:
+            print("End of recording")
+            self.vid.release()
+
+    # def video_recorder(self):
+    #     cwd = os.getcwd()
+    #     directory = os.path.join(cwd, "Video")
+    #     if not os.path.exists(directory):
+    #         os.makedirs(directory)
+    #     fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    #     self.vid = cv2.VideoWriter('record.avi', fourcc, 5, (int(self.window_width * 2), int(self.window_height * 2)))
+    #     self.loop_video()
+    #
+    # def loop_video(self):
+    #     if self.time != self.max_time and not self.stop:
+    #         img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
+    #         frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+    #         self.vid.write(frame)
+    #         self.clock.after(int(DIC_TIME[self.speed_mode] / 10), self.loop_video)
+    #     else:
+    #         print("End of recording")
+    #         self.vid.release()
 
     def get_hexagon(self, id):
         for hexagon in self.hexagons_from_model:
@@ -238,20 +279,6 @@ class Linear:
         t.start()
         return t
 
-    """I think that this def is not used in project"""
-
-    def draw_line_text(self, connected_aspects):
-        for object in connected_aspects:
-            line_text_width = min(0.8 * abs(object.aspect_out.x_sline
-                                            - object.aspect_in.x_sline), 4 * r)
-            object.drawn_text = self.canvas.create_text(
-                (object.aspect_in.x_sline + object.aspect_out.x_sline) / 2,
-                (object.aspect_in.y_sline + object.aspect_out.y_sline) / 2,
-                anchor="center",
-                text=object.text,
-                font=("Helvetica", 7),
-                width=line_text_width)
-
     def create_connected_aspect(self, event, row):
         out_func = event.active_func
         in_func = event.dstream_coupled_func
@@ -273,7 +300,6 @@ class Linear:
             out_hexagon.connected_aspects.append(connected_aspect)
 
     def create_hexagon(self, event, is_end):
-        # pdb.set_trace()
         if event.active_func == 0:
             self.cycle = self.cycle + 1
             # this index is for hexagon's number
@@ -384,8 +410,6 @@ class Linear:
             self.draw_time_line()
 
     def draw_line_inactive_funcs(self, connected_aspects):
-        # print("start inactive")
-        # pdb.set_trace()
         for object in connected_aspects:
             object.drawn = lcurve(self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
@@ -460,8 +484,6 @@ class Linear:
                 last_time = event.time_stamp
 
     def sort_inactive_hex(self, inactive_hex_list):
-        # for hexagon in inactive_hex_list:
-        # pdb.set_trace()
         inactive_hex_list.sort(key=lambda hexagon: hexagon.x, reverse=False)
         return inactive_hex_list
 
@@ -484,10 +506,8 @@ class Linear:
     def create_model_from_model(self, show_hide_flag):
 
         """create active hexagons for drawing"""
-        # for i, event in enumerate(self.scene_events):
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
             is_end = (i + 1) == len(self.uniq_activefunc_sceneevents)
-            # pdb.set_trace()
             self.create_hexagon(event, is_end)
 
         # creating the connected aspect for activated hexagon
@@ -510,14 +530,11 @@ class Linear:
                 self.get_inactives(item)
                 inactive_hex_list = self.sort_inactive_hex(
                     [self.get_hexagon(hex_id) for hex_id in self.inactive_hex_id])
-                # model_width = self.model_scale()
-                # shrink_scale = (self.duration[cycle_index] * 100) / model_width
                 for hex_index, inactive_hex in enumerate(inactive_hex_list):
                     self.create_inactive_hexagon(inactive_hex, hex_index, cycle_index)
 
     def create_model_from_scenario(self):
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
-            print("this is time stamp", event.time_stamp)
             is_end = (i + 1) == len(self.uniq_activefunc_sceneevents)
             self.create_hexagon(event, is_end)
         for i, event in enumerate(self.uniq_activefunc_sceneevents):
@@ -536,34 +553,20 @@ class Linear:
                 self.time_stamp = event.time_stamp
 
     def take_hex_from_combine_hexes(self, cycle, hex_in_num):
-        print(hex_in_num)
         for ind, hexagon in enumerate(self.combine_hexes[cycle]):
-
-            # for index, hexagon in enumerate(list):
-            # pdb.set_trace()
-
             if hexagon.id == int(hex_in_num):
-                # self.inactive_hex.pop(index)
-                # self.combine_hexes[ind].pop(index)
-
                 return hexagon
-
-        # pdb.set_trace()
 
     def create_inactive_connected_aspect(self, hexagon, inactive_connected_aspect):
         conn_list = []
         for connected_aspect in inactive_connected_aspect:
             hex_in_num = connected_aspect.hex_in_num
             list_index = hexagon.cycle
-            # self.combine_hexes[list_index]
-            # self.get_hexagon( )
-            # pdb.set_trace()
             aspect_in_o_name = connected_aspect.aspect_in.o_name
             hexagon_in = self.take_hex_from_combine_hexes(list_index, hex_in_num)
             aspect_in = getattr(hexagon_in.hex_aspects, take_o_name(aspect_in_o_name))
             aspect_out = hexagon.hex_aspects.outputs
             text = connected_aspect.text
-
             connected_aspect = AspectConnector(
                 aspect_in=aspect_in,
                 aspect_out=aspect_out,
@@ -610,23 +613,21 @@ class Linear:
                 self.play_linear()
 
     def play_linear(self):
-        if self.history_events:
 
-            for event in self.history_events:
-                self.history_times.add(event.time)
-            history_iterator = self.history_event_generator()
-            directory_new = self.check_prescreenshot()
-
-            self.loop_linear(history_iterator=history_iterator, directory_new=directory_new)
-        else:
-            directory_new = self.check_prescreenshot()
-            self.loop_linear(directory_new=directory_new, history_iterator=None)
+        """trial"""
+        directory_new = self.check_prescreenshot()
+        if self.history_list:
+            for history_data in self.history_list:
+                for event in history_data.history_events:
+                    self.history_times.add(int(event.time))
+        self.loop_linear(directory_new=directory_new)
+        self.set_video()
 
     def history_event_generator(self):
         for history_event in self.history_events:
             yield history_event
 
-    def loop_linear(self, directory_new, history_iterator):
+    def loop_linear(self, directory_new):
         # if user hits stop button
         if self.stop:
             return
@@ -642,27 +643,31 @@ class Linear:
             self.clock['text'] = f"TIME:{str(self.time)}s" if self.time > -1 else 0
 
             # checking for history_data
-            if self.history_events and self.time in self.history_times:
-                history_event = next(history_iterator)
-                hexagons = self.get_hexagon_from_selfhexagons(self.f_choice_number)
-                for hexa in hexagons:
-                    for connected_aspect in hexa.connected_aspects:
-                        connected_aspect.text = str(
-                            f"{history_event.name_var1}:" + " " + str(
-                                history_event.var1) + "\n" + f"{history_event.name_var2}:" + " " + str(
-                                history_event.var2))
-                        self.canvas.itemconfigure(connected_aspect.drawn_text, text=connected_aspect.text)
+            # pdb.set_trace()
+            if self.history_list and self.time in self.history_times and self.time not in self.seen_history_events:
+                self.seen_history_events.append(int(self.time))
+                events_history = get_history_events(self.time, self.history_list)
+                for event in events_history:
+                    # pdb.set_trace()
+                    hexagon = self.get_hexagon_from_selfhexagons(event["f_choice_id"])
+                    for hexa in hexagon:
+                        for connected_aspetc in hexa.connected_aspects:
+                            connected_aspetc.text = str(
+                                f"{event['event'].name_var1}:" + " " + str(
+                                    event['event'].var1) + "\n" + f"{event['event'].name_var2}:" + " " + str(
+                                    event['event'].var2))
+                            self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
 
             x = (100 / (self.uniq_hexagon[-1].hex_aspects.outputs.x_sline + 50)) * self.time
             self.canvas.xview_moveto(x)
-            self.canvas.after(DIC_TIME[self.speed_mode], self.loop_linear, directory_new, history_iterator)
+            self.canvas.after(DIC_TIME[self.speed_mode], self.loop_linear, directory_new)
 
     def reset_loop(self):
         self.stop = True
         self.clock["text"] = ""
         self.canvas.xview_moveto(0)
         if self.history_events:
-            self.history_events.clear()
+            self.history_list.clear()
         if self.pre_screenshot_time:
             self.seen_screenshots.clear()
         self.hexagons.clear()

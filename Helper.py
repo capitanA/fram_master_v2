@@ -17,18 +17,6 @@ from FramShapes import Arc
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
-# """creating logger for user"""
-#
-# user_logger = logging.getLogger("user_logger")
-# user_logger.setLevel(logging.WARNING)
-#
-# formatter = logging.Formatter('%(asctime)s: %(name)s:%(message)s')
-#
-# handler = logging.FileHandler("user_logger.log")
-# handler.setFormatter(formatter)
-#
-# user_logger.addHandler(handler)
-
 
 def lcurve(canvas, x1, y1, x2, y2):
     """
@@ -134,64 +122,37 @@ def get_connector(event, connected_aspects):
         else:
             return None
 
-    # if not event or not connected_aspects:
-    #
-    # user_logger.info("oops", " there was a discrepancy between model and scenario file at the time of {}".format(
-    #     event.time_stamp))
-    #     return None
 
-    # return None
-
-
-# def user_log(current_time, severity, msg):
-#     text = "[{}] {}: {}".format(current_time, severity, msg)
-#     print(text)
-#     with open("user_log.log", "w+") as file:
-#         file.write(text)
+def get_history_events(current_time, history_list):
+    events_history = []
+    # pdb.set_trace()
+    for history_data in history_list:
+        for event in history_data.history_events:
+            if event.time == current_time:
+                events_history.append(
+                    {"event": event, "f_choice": history_data.f_choice, "f_choice_id": history_data.f_choice_id})
+    return events_history
 
 
-"""
-
-class Timer:
-    def __init__(self, last_time, start_time, label, root, speed_mode):
-        self.DIC_TIME = {"x1": 1000, "x2": 800, "x4": 600, "x8": 400, "x16": 250}
-        self.label = label
-        self.last_time = last_time
-        self.start_time = start_time
-        self.root = root
-        self.speed_mode = speed_mode
-        self.stop_thread = False
-        # self.thread = threading.Thread(target=self.start_counter)
-        # self.thread.start()
-        self.t1 = MyThread()
-        self.t1.start()
-
-    def start_counter(self):
-        self.start_time += 1
-        self.label['text'] = self.start_time
-        # self.start_time = start_time
-        if self.start_time < self.last_time:
-            self.label.after(self.DIC_TIME[self.speed_mode], self.start_counter)
-
-    def reset_time(self):
-        self.t1.stop()
-        self.t1.join()
-        """
-
-
-# class StoppableThread(threading.Thread):
-#     """Thread class with a stop() method. The thread itself has to check
-#     regularly for the stopped() condition."""
-#
-#     def __init__(self):
-#         super(StoppableThread, self).__init__()
-#         self._stop_event = threading.Event()
-#
-#     def stop(self):
-#         self._stop_event.set()
-#
-#     def stopped(self):
-#         return self._stop_event.is_set()
+def check_which_aspect(aspect):
+    # pdb.set_trace()
+    # print(type(aspect))
+    if aspect.isnumeric():
+        # if isinstance(aspect,int):
+        if aspect == "1":
+            return "C"
+        elif aspect == "2":
+            return "T"
+        elif aspect == "3":
+            return "I"
+        elif aspect == "4":
+            return "P"
+        elif aspect == "5":
+            return "R"
+        elif aspect == "6":
+            return "O"
+    else:
+        return aspect
 
 
 def draw_line_text(self, connected_Aspects):
@@ -204,54 +165,6 @@ def draw_line_text(self, connected_Aspects):
             text=object.text,
             font=("Helvetica", 7),
             width=line_text_width)
-
-
-# def start():
-#     output = "video.avi"
-#     img = pyautogui.screenshot()
-#     img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-#     # get info from img
-#     height, width, channels = img.shape
-#     # Define the codec and create VideoWriter object
-#     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#     out = cv2.VideoWriter(output, fourcc, 20.0, (width, height))
-#
-#     while (True):
-#         try:
-#             img = pyautogui.screenshot()
-#             image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-#             out.write(image)
-#             StopIteration(0.5)
-#         except KeyboardInterrupt:
-#             break
-
-
-def recording_video(stop, directory, window_width, window_height):
-    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
-
-    # img = pyautogui.screenshot()
-    # img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-    # window_height, window_width, channels = img.shape
-    # directory_new = os.path.join(directory, file_name.split("/")[-1])
-    # directory_new = os.path.join(directory, file_name)
-    # if len(directory_new) < 5 or directory_new[-4:] != ".avi":
-    #     directory_new += ".avi"
-
-    file_name = "sample1.avi"
-
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(file_name, fourcc, 5, (window_width, window_height))
-
-    while not stop:
-        # print("video is running")
-        img = ImageGrab.grab()
-        # img = pyautogui.screenshot()
-        image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        out.write(image)
-
-    out.release()
-    cv2.destroyAllWindows()
 
 
 class MyThread(threading.Thread):

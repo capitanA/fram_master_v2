@@ -13,3 +13,4 @@ screenshots/*.jpg
 screenshots/capture/*.jpg
 screenshots/predefined_*/
 *.avi
+trash.py
