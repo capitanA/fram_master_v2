@@ -130,7 +130,7 @@ class Aspect:
 
 class AspectConnector:
     def __init__(self, aspect_out, aspect_in, hex_in_num, text="", drawn=None, drawn_text=None, active_drawns=None,
-                 is_active=False):
+                 is_active=False, flaw_drawn=False):
         self.aspect_in = aspect_in
         self.aspect_out = aspect_out
         self.hex_in_num = int(hex_in_num)
@@ -139,6 +139,7 @@ class AspectConnector:
         self.drawn_text = drawn_text
         self.active_drawns = active_drawns
         self.is_active = is_active
+        self.flaw_drawn = flaw_drawn
 
     def __str__(self):
         return "AspectConnector: {}, hex_in_num: {}, aspect_in: {}, aspect_out: {}".format(self.text, self.hex_in_num,

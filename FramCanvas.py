@@ -32,8 +32,10 @@ class FramCanvas(tk.Frame):
         self.canvas.bind("<B1-Motion>", self.scroll_move)
 
         # linux zoom
-        self.canvas.bind("<Button-4>", self.zoomer_p)
-        self.canvas.bind("<Button-5>", self.zoomer_m)
+        # self.canvas.bind('<MouseWheel>', self.zoomer_p)  # with Windows and MacOS, but not Linux
+
+        # self.canvas.bind("<Button-4>", self.zoomer_p)  # only with Linux, wheel scroll up
+        # self.canvas.bind("<Button-5>", self.zoomer_m)  # only with Linux, wheel scroll down
 
         # windows scroll
         self.canvas.bind("<MouseWheel>", self.zoomer)
@@ -46,6 +48,7 @@ class FramCanvas(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.logger = logger
         self.y_max = 0
+        self.fontsize = 12
 
     def scroll_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
@@ -73,9 +76,158 @@ class FramCanvas(tk.Frame):
         true_x = self.canvas.canvasx(event.x)
         true_y = self.canvas.canvasy(event.y)
         if event.delta > 0:
-            self.canvas.scale("all", true_x, true_y, 1.1, 1.1)
+            self.canvas.scale("all", true_x, true_y, 1.03, 1.03)
+
         elif event.delta < 0:
-            self.canvas.scale("all", true_x, true_y, 0.9, 0.9)
+            self.canvas.scale("all", true_x, true_y, 0.97, 0.97)
+        self.zoom_output_text(event.delta)
+        self.zoom_hexagons_text()
+        self.coord_update_hexagon()
+        self.zoom_aspect_circles_text()
+
+    def coord_update_hexagon(self):
+        """
+        Update the coordinates of the hexagon objects on the canvas, activated whenever the objects
+        are moved
+        """
+        slice = {"O": 0, "C": 1, "T": 2, "I": 3, "P": 4, "R": 5}
+        sweep = -math.pi * 2 / 6
+        if self.hexagons:
+            h_coords = []
+
+            for hexagon in self.hexagons:
+                h_coords.append(self.canvas.coords(hexagon.drawn))
+            for i, h in enumerate(self.hexagons):
+                for attr, value in h.hex_aspects.__dict__.items():  # loop over [O, C, T, I, P, R]
+                    if attr == "resources":
+                        if value.y_oright > self.y_max:
+                            self.y_max = value.y_oright
+                    if value.o_name == "O":
+
+                        h.hex_aspects.outputs.x_sline = h_coords[i][0] + 40 * math.cos(slice["O"] * sweep) / 6
+                        h.hex_aspects.outputs.y_sline = h_coords[i][1] + 40 * math.sin(slice["O"] * sweep) / 6
+                    elif value.o_name == "C":
+                        h.hex_aspects.controls.x_sline = h_coords[i][2] + 40 * math.cos(slice["C"] * sweep) / 6
+                        h.hex_aspects.controls.y_sline = h_coords[i][3] + 40 * math.sin(slice["C"] * sweep) / 6
+                    elif value.o_name == "T":
+                        h.hex_aspects.times.x_sline = h_coords[i][4] + 40 * math.cos(slice["T"] * sweep) / 6
+                        h.hex_aspects.times.y_sline = h_coords[i][5] + 40 * math.sin(slice["T"] * sweep) / 6
+                    elif value.o_name == "I":
+                        h.hex_aspects.inputs.x_sline = h_coords[i][6] + 40 * math.cos(slice["I"] * sweep) / 6
+                        h.hex_aspects.inputs.y_sline = h_coords[i][7] + 40 * math.sin(slice["I"] * sweep) / 6
+                    elif value.o_name == "P":
+                        h.hex_aspects.preconditions.x_sline = h_coords[i][8] + 40 * math.cos(slice["P"] * sweep) / 6
+                        h.hex_aspects.preconditions.y_sline = h_coords[i][9] + 40 * math.sin(slice["P"] * sweep) / 6
+                    elif value.o_name == "R":
+                        h.hex_aspects.resources.x_sline = h_coords[i][10] + 40 * math.cos(slice["R"] * sweep) / 6
+                        h.hex_aspects.resources.y_sline = h_coords[i][11] + 40 * math.sin(slice["R"] * sweep) / 6
+
+    def zoom_aspect_circles_text(self):
+        """
+        # Update the text within aspect circles whenever zooming is activated
+        # :param pos: current coordinates of the circle
+        # :param text_width: updated width of label text in a circle
+        # :param new_font_2: updated font of the text
+        # :param line_size: updated size of the circle's border
+        """
+        # pdb.set_trace()
+        pos = self.canvas.coords(self.hexagons[0].drawn)  # [left,top,right,bottom]
+        text_width = abs(0.8 * (pos[2] - pos[0]))
+        self.fontsize = int(round(text_width / 1.5))
+        line_size = max(1, round(self.fontsize / 9))
+        new_font_2 = ("Helvetica", max(1, self.fontsize))
+        for hexagon in self.hexagons:
+
+            self.canvas.itemconfigure(hexagon.drawn, width=line_size)
+            for attr, value in hexagon.hex_aspects.__dict__.items():
+
+                self.canvas.itemconfigure(value.drawn_text, font=new_font_2, width=text_width)
+                self.canvas.itemconfigure(value.drawn, width=line_size)
+
+            for connected_aspects in hexagon.connected_aspects:
+                if connected_aspects:
+                    for drawn_line in connected_aspects.drawn:
+                        self.canvas.itemconfigure(drawn_line, width=line_size)
+
+            # for connected_aspect in hexagon.connected_aspects:
+            #     self.canvas.itemconfigure(connected_aspect.drawn, width=line_size)
+            #     else:
+            #         for o_o in o_l:
+            #             # print(o_o)
+            #             if isinstance(o_o, int):
+            #                 # print("yes")
+            #                 self.canvas.itemconfigure(o_o, width=line_size)
+            #             elif o_o != []:
+            #                 for o in o_o[0]:
+            #                     self.canvas.itemconfigure(o, width=line_size)
+            # if self.aspect_circles_inact_text != []:
+            #     for text in self.aspect_circles_inact_text:
+            #         for t in text:
+            #             self.canvas.itemconfigure(t, font=new_font_2, width=text_width)
+            #     for cir in self.aspect_circles_inact:
+            #         for c in cir:
+            #             self.canvas.itemconfigure(c[0], width=line_size)
+            #     for h in self.hex_inact:
+            #         self.canvas.itemconfigure(h, width=line_size)
+
+    def zoom_output_text(self, flag):
+        """
+        # Update the output text whenever zooming is activated
+        # :param new_font: initial updated font
+        # :param flag: tells the function whether to zoom in or out
+        """
+        new_font = 100
+        if flag > 0:
+
+            for hexagon in self.hexagons:
+                for connected_aspect in hexagon.connected_aspects:
+                    if connected_aspect:
+                        text = connected_aspect.drawn_text
+            str_text = self.canvas.itemcget(text, "font")
+            text_width = int(self.canvas.itemcget(text, "width"))
+            new_text_width = round(11 * text_width / 10)
+            new_font = min([int(s) for s in str_text.split() if s.isdigit()][0], new_font)
+            new_font += 1
+            new_font_2 = ("Helvetica", max(1, self.fontsize))
+            self.canvas.itemconfigure(text, font=new_font_2, width=new_text_width)
+            for hexagon in self.hexagons:
+                for connected_aspect in hexagon.connected_aspects:
+                    if connected_aspect:
+                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2, width=new_text_width)
+        elif flag < 0:
+            for hexagon in self.hexagons:
+                for connected_aspect in hexagon.connected_aspects:
+                    if connected_aspect:
+                        text = connected_aspect.drawn_text
+            str_text = self.canvas.itemcget(text, "font")
+            text_width = int(self.canvas.itemcget(text, "width"))
+            new_text_width = round(10 * text_width / 11)
+            new_font = min([int(s) for s in str_text.split() if s.isdigit()][0], new_font)
+            new_font -= 1
+            new_font_2 = ("Helvetica", max(1, self.fontsize))
+            self.canvas.itemconfigure(text, font=new_font_2, width=new_text_width)
+            for hexagon in self.hexagons:
+                for connected_aspect in hexagon.connected_aspects:
+                    if connected_aspect:
+                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2, width=new_text_width)
+
+    def zoom_hexagons_text(self):
+        """
+        # Update the text within hexagons whenever zooming is activated
+        # :param pos_1: current coordinates of the 'Controls' circle
+        # :param pos_2: current coordinates of the 'Times' circle
+        # :param text_width: updated width of label text in a hexagon
+        # :param new_font_2: updated font of the text
+        """
+        for hexagon in self.hexagons:
+            pos_1 = self.canvas.coords(hexagon.hex_aspects.controls.drawn)
+            pos_2 = self.canvas.coords(hexagon.hex_aspects.times.drawn)
+            # pos_1 = self.canvas.coords(self.aspect_circles[0][1])  # [left,top,right,bottom]
+            # pos_2 = self.canvas.coords(self.aspect_circles[0][2])  # [left,top,right,bottom]
+            text_width = 1.5 * (pos_1[2] - pos_2[0])
+            new_font_2 = ("Helvetica", max(1, self.fontsize))
+
+            self.canvas.itemconfigure(hexagon.drawn_text, font=new_font_2, width=text_width)
 
     def draw_polygon(self, hexagon):
         hexagon.drawn = self.canvas.create_polygon(hexagon.hex_aspects.outputs.x_c,
@@ -234,10 +386,9 @@ class FramCanvas(tk.Frame):
                               preconditions=Aspect(o_name="P", x=x, y=y, r=r),
                               resources=Aspect(o_name="R", x=x, y=y, r=r))
 
-            is_end = (aspects.outputs.out_text == 0)
+            # is_end = (aspects.outputs.out_text == 0)
 
-            hexagon = Hexagon(id=id, name=name, x=x, y=y, hex_aspects=aspects, connected_aspects=[],
-                              is_end=is_end)
+            hexagon = Hexagon(id=id, name=name, x=x, y=y, hex_aspects=aspects, connected_aspects=[])
             self.add_hexagon(hexagon)
 
         for hexagon in self.hexagons:

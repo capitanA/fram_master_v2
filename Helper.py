@@ -17,7 +17,7 @@ from FramShapes import Arc
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 
-def lcurve(canvas, x1, y1, x2, y2):
+def lcurve(canvas, x1, y1, x2, y2, linear=False):
     """
     Make curved lines from A to B at one drawing, used for the case of linear playing
     :param x1: A's horizontal coordinate
@@ -25,14 +25,32 @@ def lcurve(canvas, x1, y1, x2, y2):
     :param x2: B's horizontal coordinate
     :param y2: B's vertical coordinate
     """
-    arcs = get_arc_properties(x1, y1, x2, y2)
-    res = []
-    for arc in arcs:
-        res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
-                                     extent=arc.extend,
-                                     style=tk.ARC))
-    return res
+    # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
+    #                                 - object.aspect_in.x_sline), 4 * 40)
 
+    if not linear:
+        arcs = get_arc_properties(x1, y1, x2, y2)
+        res = []
+        for arc in arcs:
+            res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
+                                         extent=arc.extend,
+                                         style=tk.ARC))
+        return res
+    else:
+        res = []
+
+        if x1 - x2 < 30:
+
+            res.append(canvas.create_line(x1, y1, x2, y2))
+            return res
+
+        else:
+            arcs = get_arc_properties(x1, y1, x2, y2)
+            for arc in arcs:
+                res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
+                                             extent=arc.extend,
+                                             style=tk.ARC))
+            return res
 
 def get_arc_properties(x1, y1, x2, y2):
     arcs = []

@@ -10,10 +10,15 @@ from PIL import ImageGrab
 from tkinter import messagebox
 import numpy as np
 # from Helper import Timer
-from Helper import get_connector, get_arc_properties, MyThread, take_o_name, get_history_events
+from Helper import get_connector, get_arc_properties, MyThread, take_o_name
 import multiprocessing
 import threading
+import sched, time
 import ipdb
+import datetime
+
+import time
+from datetime import timedelta
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
@@ -38,11 +43,15 @@ class Recursive:
         self.pre_screenshot_time = pre_screenshot_time
         self.history_list = history_list
         self.seen_history_events = []
+        # self.previous_text_list = []
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
+
         self.hexagons = hexagons
         self.scene_events = scene_events
+        # self.f_choice = f_choice
+        # self.f_choice_number = f_choice_number
         self.history_times = set()
         self.root = root
         self.clock = clock
@@ -53,34 +62,48 @@ class Recursive:
         self.y_max = y_max
         self.index = 0
         self.max_time = self.scene_events[-1].time_stamp
-        # self.video_recorder()
         self.events_history = list()
         self.vid = None
+        self.file_name = None
+        """middle point for curve of last hexagon """
 
     def set_video(self, timer):
         """creating the file and directory for video"""
-        file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
-        cwd = os.getcwd()
-        directory = os.path.join(cwd, "Videos")
+        self.file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
+        if self.file_name.split("/")[-1]:
+            cwd = os.getcwd()
+            directory = os.path.join(cwd, "Videos")
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            directory_new = os.path.join(directory, self.file_name.split("/")[-1])
+            if len(directory_new) < 5 or directory_new[-4:] != ".avi":
+                directory_new += ".avi"
+            fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            # pdb.set_trace()
 
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        directory_new = os.path.join(directory, file_name.split("/")[-1])
-        if len(directory_new) < 5 or directory_new[-4:] != ".avi":
-            directory_new += ".avi"
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.vid = cv2.VideoWriter(directory_new, fourcc, 5, (int(self.window_width * 2), int(self.window_height * 2)))
-        self.loop_video(timer)
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+            #                            ((int(self.canvas.winfo_width() * 2) - 360),
+            #                             (int(self.canvas.winfo_height() * 2) - 190)))
+            self.vid = cv2.VideoWriter(directory_new, fourcc, 4,
+                                       (int(self.window_width * 2), int(self.window_height * 2)))
+
+            loop_video = threading.Thread(target=self.loop_video, args=(timer,))
+            loop_video.start()
 
     def loop_video(self, timer):
-        if timer.current_time != self.max_time and not self.stop:
+        while True:
+            # if timer.current_time != self.max_time and not self.stop:
+            # img = ImageGrab.grab(bbox=(360, 190, self.canvas.winfo_width() * 2, self.canvas.winfo_height() * 2))
             img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
+
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
             self.vid.write(frame)
-            self.clock.after(int(DIC_TIME[self.speed_mode] / 24), self.loop_video)
-        else:
-            print("End of recording")
-            self.vid.release()
+            if self.timer.current_time == self.max_time or self.stop:
+                print("End of recording")
+                self.vid.release()
+                break
+                # time.sleep(interval)
+                # self.canvas.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
 
     def check_equal_event(self, first_time):
         counter = 0
@@ -140,6 +163,7 @@ class Recursive:
         y1 = connected_aspect.aspect_in.y_sline
         length_l = x0 - x1
         bboxx1 = x0
+        # self.check_for_update_model()
         bboxy1 = self.y_max + self.index
         length_w = bboxy1 - y0
         bboxx2 = x0 - (2 * length_l)
@@ -242,7 +266,7 @@ class Recursive:
                                                                              start=start_ang,
                                                                              extent=extend,
                                                                              style=tk.ARC,
-                                                                             width=1.5,
+                                                                             width=1.9,
                                                                              outline="tomato"))
             else:
                 if step <= 5:
@@ -255,7 +279,8 @@ class Recursive:
     def deactivate_last_hex(self, connected_aspect):
         self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="white")
         for hexagon in self.hexagons:
-            self.canvas.itemconfigure(hexagon.drawn, fill="white")
+            if hexagon.is_end:
+                self.canvas.itemconfigure(hexagon.drawn, fill="white")
 
     def slice_curve_loop(self, interval, step, arcs, connected_aspect, last_hexagon):
         if step <= 10 and not self.stop:
@@ -264,6 +289,12 @@ class Recursive:
             step = step + 1
             self.canvas.after(int(interval), self.slice_curve_loop, interval, step, arcs, connected_aspect,
                               last_hexagon)
+        """for disappearing the last line hexagon"""
+        # if step > 10 and not self.stop and last_hexagon:
+        #     for active_drawn in connected_aspect.active_drawns:
+        #         self.canvas.delete(active_drawn)
+        #     for event in self.scene_events:
+        #         self.canvas.itemconfigure(event.draw_active_func_output, text="")
 
     def moving_line(self, duration_time, connected_aspect, last_hexagon):
         x0 = connected_aspect.aspect_out.x_sline
@@ -278,8 +309,8 @@ class Recursive:
 
     def reset_actives(self):
         self.logger.info("### resetting active events text")
-        for event in self.scene_events:
-            self.canvas.itemconfigure(event.draw_active_func_output, text="")
+        # for event in self.scene_events:
+        #     self.canvas.itemconfigure(event.draw_active_func_output, text="")
 
         # self.logger.info("### resetting active hexagons and its aspects and its connectors")
         for hexagon in self.hexagons:
@@ -287,7 +318,12 @@ class Recursive:
             self.canvas.itemconfigure(hexagon.drawn, fill="white")
             for connected_aspect in hexagon.connected_aspects:
                 self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="white")
+
                 self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="white")
+                self.canvas.tag_lower(connected_aspect.drawn_text)
+                self.canvas.itemconfigure(connected_aspect.drawn_text, fill="white")
+                # self.canvas.delete(connected_aspect.drawn_text)
+
                 connected_aspect.is_active = False
                 if connected_aspect.active_drawns:
                     for active_drawn in connected_aspect.active_drawns:
@@ -319,22 +355,25 @@ class Recursive:
             bbox = self.check_which_hexagon(connected_aspect)
             x_elips = (x0 + x1) / 2
             y_elips = (0.85 * (bbox[1] - y0)) + y0
-
-            event.draw_active_func_output = self.canvas.create_text(
+            if connected_aspect.drawn_text:
+                self.canvas.delete(connected_aspect.drawn_text)
+            connected_aspect.drawn_text = self.canvas.create_text(
                 x_elips,
                 y_elips,
                 anchor="center",
                 text=connected_aspect.text,
-                font=("Helvetica", 7),
+                font=("Helvetica", 10),
                 width=line_text_width)
 
         else:
-            event.draw_active_func_output = self.canvas.create_text(
+            if connected_aspect.drawn_text:
+                self.canvas.delete(connected_aspect.drawn_text)
+            connected_aspect.drawn_text = self.canvas.create_text(
                 (connected_aspect.aspect_in.x_sline + connected_aspect.aspect_out.x_sline) / 2,
                 (connected_aspect.aspect_in.y_sline + connected_aspect.aspect_out.y_sline) / 2,
                 anchor="center",
                 text=connected_aspect.text,
-                font=("Helvetica", 7),
+                font=("Helvetica", 10),
                 width=line_text_width)
 
         self.moving_line(duration_time, connected_aspect, hexagon.is_end)
@@ -353,7 +392,6 @@ class Recursive:
     def create_flaw_connected_aspect(self, event, hexagon):
         hex_in_num = event.dstream_coupled_func
         hexagon_in = self.get_hexagon(hex_in_num)
-
         aspect_in = getattr(hexagon_in.hex_aspects, take_o_name(event.dstream_func_aspect))
         aspect_out = hexagon.hex_aspects.outputs
         text = event.active_func_output
@@ -365,9 +403,7 @@ class Recursive:
     def activate_event(self, event):
         hexagon = self.get_hexagon(event.active_func)
         hex_in = int(event.dstream_coupled_func)
-
         aspect_in = event.dstream_func_aspect
-        # aspect_in = event.dstream_func_aspect
         if hexagon.is_end:
             connected_aspect = AspectConnector(
                 aspect_in=getattr(self.get_hexagon(hex_in).hex_aspects, take_o_name(aspect_in)),
@@ -415,13 +451,32 @@ class Recursive:
 
     def check_for_reset(self, events):
         for event in events:
-            if self.get_hexagon(event.active_func).is_end:
+            hexagon = self.get_hexagon(event.active_func)
+            if not hexagon.connected_aspects:
+                hexagon.is_end = True
+            if hexagon.is_end:
+                # print(self.get_hexagon(event.active_func).is_end)
                 self.reset_actives()
+
+    def history_event_generator(self):
+        # for even in self.history_events:
+        #     yield event
+
         for history_event in self.history_list:
             for event in history_event:
                 yield event
 
+    def get_history_events(self, current_time):
+        self.events_history.clear()
+        for history_data in self.history_list:
+            for event in history_data.history_events:
+                if event.time == current_time:
+                    self.events_history.append(
+                        {"event": event, "f_choice": history_data.f_choice, "f_choice_id": history_data.f_choice_id})
+        return self.events_history
+
     def loop_recursive(self, time_stamp, directory_new, history_times=None):
+
         current_time = self.timer.current_time
         if current_time == time_stamp and time_stamp not in self.seen_events:
             # self.logger.info("### current time is: {}".format(current_time))
@@ -432,9 +487,13 @@ class Recursive:
                 self.activate_event(event)
 
             ## checking for existance of history events
+
         if self.history_list and current_time in history_times and current_time not in self.seen_history_events:
-            events_history = get_history_events(current_time, self.history_list)
+
+            events_history = self.get_history_events(current_time)
             for event in events_history:
+                # trial
+                # pdb.set_trace()
                 self.seen_history_events.append(int(current_time))
                 hexagon = self.get_hexagon(event["f_choice_id"])
                 for connected_aspetc in hexagon.connected_aspects:
@@ -443,8 +502,6 @@ class Recursive:
                             event['event'].var1) + "\n" + f"{event['event'].name_var2}:" + " " + str(
                             event['event'].var2))
                     self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
-                # if current_time == int(self.history_list[-1][-1].time):  # this condition is not stable
-                #     pass
 
         ## checking for having a predfine screen shot
         if current_time in self.pre_screenshot_time and current_time not in self.seen_screenshots:
@@ -474,7 +531,13 @@ class Recursive:
             for connected_aspect in hexagon.connected_aspects:
                 self.canvas.itemconfigure(connected_aspect.drawn_text, text="")
 
+    # def check_for_quit(self, speed):
+    #     if speed == 16:
+    #         messagebox.showinfo("Speed error", " this speed is for linear play only")
+    #         self.reset_loop()
+
     def play_recursive(self):
+        # self.check_for_quit(self.speed_mode)
         if not self.hexagons:
             messagebox.showinfo("oops", "First,Upload the model")
             self.canvas.delete("all")
@@ -484,13 +547,14 @@ class Recursive:
         last_time = self.scene_events[-1].time_stamp
         self.timer = MyThread(last_time=int(last_time), current_time=-1, label=self.clock, root=self.root,
                               speed_mode=self.speed_mode)
+        self.timer.start()
         self.set_video(self.timer)  # start the video recorder
 
-        self.timer.start()
-
         # we will check for update every [interval] milliseconds
-        interval = DIC_TIME[self.speed_mode] / (5 * 1000)
+        interval = DIC_TIME[self.speed_mode]
+        # interval = DIC_TIME[self.speed_mode]
         self.logger.info("### interval is: {}".format(interval))
+
         if self.history_list:
             for history_data in self.history_list:
                 for event in history_data.history_events:
@@ -504,7 +568,8 @@ class Recursive:
                 self.loop_recursive(event.time_stamp, directory_new)
             elif event.time_stamp != 0 and not self.history_list:
                 self.set_interval(self.loop_recursive, interval, event.time_stamp,
-                                  directory_new, self.history_times)
+                                  directory_new)
+
             elif event.time_stamp == 0 and self.history_list:
                 self.loop_recursive(event.time_stamp, directory_new, self.history_times)
 
@@ -513,13 +578,19 @@ class Recursive:
                                   directory_new, self.history_times)
 
     def set_interval(self, func, sec, *argv):
-        def func_wrapper():
-            self.set_interval(func, sec, *argv)
-            func(*argv)
+        flag = False
+        if self.stop or self.timer == self.max_time:
+            self.reset_loop()
+            flag = True
 
-        t = threading.Timer(sec, func_wrapper)
-        t.start()
-        return t
+        def func_wrapper(flag):
+            if not flag:
+                func(*argv)
+                self.canvas.after(sec, self.set_interval, func, sec, *argv)
+            else:
+                return
+
+        func_wrapper(flag)
 
     def reset_loop(self):
         self.stop = True
@@ -532,3 +603,5 @@ class Recursive:
         self.hexagons.clear()
         self.seen_events.clear()
         self.scene_events.clear()
+        if self.file_name:
+            self.vid.release()

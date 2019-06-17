@@ -17,6 +17,8 @@ from SceneEvent import SceneEvent
 from FramCanvas import *
 from HistoryData import HistoryData
 from Recursive import Recursive
+# from Recursive_test import Recursive
+# from Linear_test import Linear
 from Linear import Linear
 from functools import partial
 from Helper import MyThread
@@ -110,7 +112,7 @@ class Start:
                                     canvas=dynaFramCanvas.canvas,
                                     speed_mode=self.speed_mode.get(), clock=CLOCK, window_width=window_width,
                                     window_height=window_height,
-                                    logger=logger, user_logger=user_logger, y_max=dynaFramCanvas.y_max)
+                                    logger=logger, y_max=dynaFramCanvas.y_max)
         else:
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
@@ -197,7 +199,8 @@ class Start:
         self.scene_event = None
         popup.delete(0, len(dynaFramCanvas.hexagons) - 1)
         dynaFramCanvas.reset_canvas()
-        self.method.reset_loop()
+        if self.method:
+            self.method.reset_loop()
         self.pre_screenshot_time = set()
         root.update()
         logger.info("### Successfully Resetted!")
