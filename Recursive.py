@@ -21,6 +21,7 @@ import time
 from datetime import timedelta
 
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
+Dic_color = {"Red": "tomato", "Blue": "blue", "Green": "springgreen"}
 
 
 class Recursive:
@@ -36,7 +37,7 @@ class Recursive:
                  window_height=None,
                  logger=None,
                  user_logger=None,
-                 stop=False, y_max=None):
+                 stop=False, y_max=None, activation_color=None):
         self.seen_events = []
         self.seen_screenshots = []
         self.speed_mode = speed_mode
@@ -47,7 +48,7 @@ class Recursive:
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
-
+        self.activation_color = Dic_color[activation_color.get()]
         self.hexagons = hexagons
         self.scene_events = scene_events
         # self.f_choice = f_choice
@@ -65,12 +66,15 @@ class Recursive:
         self.events_history = list()
         self.vid = None
         self.file_name = None
-        """middle point for curve of last hexagon """
+        self.recursive_funcs = set(hexagon.id for hexagon in self.hexagons if hexagon.is_end)
 
     def set_video(self, timer):
         """creating the file and directory for video"""
         self.file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
         if self.file_name.split("/")[-1]:
+            x = self.canvas.winfo_width() / 2
+            y = self.canvas.winfo_height() - 50
+            self.clock.place(x=x, y=y)
             cwd = os.getcwd()
             directory = os.path.join(cwd, "Videos")
             if not os.path.exists(directory):
@@ -79,31 +83,29 @@ class Recursive:
             if len(directory_new) < 5 or directory_new[-4:] != ".avi":
                 directory_new += ".avi"
             fourcc = cv2.VideoWriter_fourcc(*"XVID")
-            # pdb.set_trace()
 
-            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-            #                            ((int(self.canvas.winfo_width() * 2) - 360),
-            #                             (int(self.canvas.winfo_height() * 2) - 190)))
-            self.vid = cv2.VideoWriter(directory_new, fourcc, 4,
-                                       (int(self.window_width * 2), int(self.window_height * 2)))
+            self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+                                       ((int(self.canvas.winfo_width() * 2) - 360),
+                                        (int(self.canvas.winfo_height() * 2) - 190)))
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5.0,
+            #                            (int(self.window_width * 2), int(self.window_height * 2)))
 
-            loop_video = threading.Thread(target=self.loop_video, args=(timer,))
+            # loop_video = threading.Thread(target=self.loop_video, args=(timer,))
+            loop_video = threading.Thread(target=self.loop_video)
             loop_video.start()
 
-    def loop_video(self, timer):
+    def loop_video(self):
         while True:
             # if timer.current_time != self.max_time and not self.stop:
-            # img = ImageGrab.grab(bbox=(360, 190, self.canvas.winfo_width() * 2, self.canvas.winfo_height() * 2))
-            img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
-
+            img = ImageGrab.grab(bbox=(360, 190, self.canvas.winfo_width() * 2, self.canvas.winfo_height() * 2))
+            # img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
             self.vid.write(frame)
+            # self.timer.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
             if self.timer.current_time == self.max_time or self.stop:
                 print("End of recording")
                 self.vid.release()
                 break
-                # time.sleep(interval)
-                # self.canvas.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
 
     def check_equal_event(self, first_time):
         counter = 0
@@ -115,7 +117,16 @@ class Recursive:
         return counter
 
     def get_active_events(self, time_stamp):
-        return [event for event in self.scene_events if event.time_stamp == time_stamp]
+        event_list = []
+        index = 0
+        for row, event in enumerate(self.scene_events):
+            if event.time_stamp == time_stamp:
+                event_list.append(event)
+                index = row
+
+        return {"events": event_list, "row": index}
+
+        # return [event for event in self.scene_events if event.time_stamp == time_stamp]
 
     def first_half_of_arc(self, arcs, step, last_hexagon):
         ## we should get curve with start_ang 0 or 270
@@ -210,7 +221,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bbox[0], bbox[1], bbox[2], bbox[3], start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline="tomato"))
+                                   outline=self.activation_color))
 
     def draw_halfcircle_lasthexagon(self, connected_aspect, step):
         start_ang = 270 - (36 * (step - 5))
@@ -233,7 +244,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bboxx1, bboxy1, bboxx2, bboxy2, start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline="tomato"))
+                                   outline=self.activation_color))
 
     def draw_slice_curve(self, step, arcs, connected_aspect, last_hexagon):
         if not connected_aspect.active_drawns:
@@ -252,7 +263,7 @@ class Recursive:
                                                                          extent=extend,
                                                                          style=tk.ARC,
                                                                          width=1.5,
-                                                                         outline="tomato"))
+                                                                         outline=self.activation_color))
         else:
             if not last_hexagon:
                 if step <= 5:  ## first half
@@ -267,7 +278,7 @@ class Recursive:
                                                                              extent=extend,
                                                                              style=tk.ARC,
                                                                              width=1.9,
-                                                                             outline="tomato"))
+                                                                             outline=self.activation_color))
             else:
                 if step <= 5:
                     self.draw_circle_lasthexagon(connected_aspect, step)
@@ -316,12 +327,15 @@ class Recursive:
         for hexagon in self.hexagons:
             hexagon.is_active = False
             self.canvas.itemconfigure(hexagon.drawn, fill="white")
+
             for connected_aspect in hexagon.connected_aspects:
                 self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="white")
-
                 self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="white")
-                self.canvas.tag_lower(connected_aspect.drawn_text)
-                self.canvas.itemconfigure(connected_aspect.drawn_text, fill="white")
+                if self.history_list and hexagon.name in [item.f_choice for item in self.history_list]:
+                    pass
+                else:
+                    self.canvas.tag_lower(connected_aspect.drawn_text)
+                    self.canvas.itemconfigure(connected_aspect.drawn_text, fill="white")
                 # self.canvas.delete(connected_aspect.drawn_text)
 
                 connected_aspect.is_active = False
@@ -332,12 +346,12 @@ class Recursive:
     def activator(self, event, hexagon, duration_time, connected_aspect):
         ## activating hexagon, input aspect and output aspect
         if not hexagon.is_active:
-            self.canvas.itemconfigure(hexagon.drawn, fill="tomato")
+            self.canvas.itemconfigure(hexagon.drawn, fill=self.activation_color)
             hexagon.is_active = True
             # self.logger.info('### function {} is activated'.format(event.active_func))
 
-        self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="tomato")
-        self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
+        self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill=self.activation_color)
+        self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill=self.activation_color)
         connected_aspect.is_active = True
         self.logger.info('### {} is activated'.format(str(connected_aspect)))
 
@@ -400,10 +414,21 @@ class Recursive:
         hexagon.connected_aspects.append(connected_aspect)
         return connected_aspect
 
-    def activate_event(self, event):
+    def activate_event(self, event, row):
         hexagon = self.get_hexagon(event.active_func)
         hex_in = int(event.dstream_coupled_func)
+        # ipdb.set_trace()
+
+        # if event.dstream_coupled_func in self.recursive_funcs and self.scene_events[
+        #     row + 1].active_func not in self.recursive_funcs:
+        if row != self.scene_events.index(
+                self.scene_events[-1]) and event.dstream_coupled_func in self.recursive_funcs and self.scene_events[
+            row + 1].active_func not in self.recursive_funcs:
+            self.user_logger.warning(
+                f"oops there was a discrepancy(RECURSIVE MODE) in scenario file at the time of "
+                f"{event.time_stamp} the recursive functions should be activated after being downstream function")
         aspect_in = event.dstream_func_aspect
+        # ipdb.set_trace()
         if hexagon.is_end:
             connected_aspect = AspectConnector(
                 aspect_in=getattr(self.get_hexagon(hex_in).hex_aspects, take_o_name(aspect_in)),
@@ -423,7 +448,7 @@ class Recursive:
                 connected_aspect.text = event.active_func_output
             else:
                 self.user_logger.warning(
-                    "oops there was a discrepancy between model and scenario file at the time of {}".format(
+                    "oops there was a discrepancy in Cyclic mode between model and scenario file at the time of {}".format(
                         event.time_stamp))
                 connected_aspect = self.create_flaw_connected_aspect(event, hexagon)
 
@@ -450,7 +475,7 @@ class Recursive:
         cv2.imwrite(directory_new_2, frame)
 
     def check_for_reset(self, events):
-        for event in events:
+        for event in events["events"]:
             hexagon = self.get_hexagon(event.active_func)
             if not hexagon.connected_aspects:
                 hexagon.is_end = True
@@ -483,8 +508,8 @@ class Recursive:
             self.seen_events.append(time_stamp)
             events = self.get_active_events(time_stamp)
             self.check_for_reset(events)
-            for event in events:
-                self.activate_event(event)
+            for event in events["events"]:
+                self.activate_event(event, events["row"])
 
             ## checking for existance of history events
 
@@ -531,13 +556,7 @@ class Recursive:
             for connected_aspect in hexagon.connected_aspects:
                 self.canvas.itemconfigure(connected_aspect.drawn_text, text="")
 
-    # def check_for_quit(self, speed):
-    #     if speed == 16:
-    #         messagebox.showinfo("Speed error", " this speed is for linear play only")
-    #         self.reset_loop()
-
     def play_recursive(self):
-        # self.check_for_quit(self.speed_mode)
         if not self.hexagons:
             messagebox.showinfo("oops", "First,Upload the model")
             self.canvas.delete("all")
@@ -547,10 +566,11 @@ class Recursive:
         last_time = self.scene_events[-1].time_stamp
         self.timer = MyThread(last_time=int(last_time), current_time=-1, label=self.clock, root=self.root,
                               speed_mode=self.speed_mode)
+
         self.timer.start()
         self.set_video(self.timer)  # start the video recorder
 
-        # we will check for update every [interval] milliseconds
+        # here the program will check for update every [interval] milliseconds
         interval = DIC_TIME[self.speed_mode]
         # interval = DIC_TIME[self.speed_mode]
         self.logger.info("### interval is: {}".format(interval))
@@ -594,6 +614,8 @@ class Recursive:
 
     def reset_loop(self):
         self.stop = True
+        with open('user_logger.log', 'w'):
+            pass
         self.timer.stop()
         self.clock["text"] = ""
         if self.history_list:
@@ -605,3 +627,5 @@ class Recursive:
         self.scene_events.clear()
         if self.file_name:
             self.vid.release()
+            self.canvas.delete("all")
+            self.clock.pack()

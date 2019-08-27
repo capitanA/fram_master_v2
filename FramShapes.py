@@ -74,7 +74,7 @@ class Aspect:
                  x=0,
                  y=0,
                  r=40,
-                 out_text="",  # it may have two out_text, in that case what happen? I think it should be a list
+                 out_text=[],  # it may have two out_text, in that case what happen? I think it should be a list
                  drawn=None,
                  drawn_text=None,
                  is_active=False):

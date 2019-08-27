@@ -4,13 +4,13 @@ from tkinter import filedialog
 from FramShapes import *
 from Helper import lcurve, take_o_name, get_connector
 from tkinter import messagebox
-import pdb
+import ipdb
 
 r = 40
 
 
 class FramCanvas(tk.Frame):
-    def __init__(self, root_fram, canvas_width_fram, canvas_height_fram, logger):
+    def __init__(self, root_fram, canvas_width_fram, canvas_height_fram, logger, user_logger):
 
         tk.Frame.__init__(self, root_fram)  # what is this? --->this is our canvas
         self.canvas_width_fram = canvas_width_fram
@@ -47,6 +47,7 @@ class FramCanvas(tk.Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.logger = logger
+        self.user_logger = user_logger
         self.y_max = 0
         self.fontsize = 12
 
@@ -59,13 +60,13 @@ class FramCanvas(tk.Frame):
     def zoomer_p(self, event):
         true_x = self.canvas.canvasx(event.x)
         true_y = self.canvas.canvasy(event.y)
-        self.canvas.scale("all", true_x, true_y, 1.1, 1.1)
+        self.canvas.scale("all", true_x, true_y, 1.01, 1.01)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def zoomer_m(self, event):
         true_x = self.canvas.canvasx(event.x)
         true_y = self.canvas.canvasy(event.y)
-        self.canvas.scale("all", true_x, true_y, 0.9, 0.9)
+        self.canvas.scale("all", true_x, true_y, 0.99, 0.99)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def zoomer(self, event):
@@ -140,7 +141,6 @@ class FramCanvas(tk.Frame):
 
             self.canvas.itemconfigure(hexagon.drawn, width=line_size)
             for attr, value in hexagon.hex_aspects.__dict__.items():
-
                 self.canvas.itemconfigure(value.drawn_text, font=new_font_2, width=text_width)
                 self.canvas.itemconfigure(value.drawn, width=line_size)
 
@@ -224,7 +224,7 @@ class FramCanvas(tk.Frame):
             pos_2 = self.canvas.coords(hexagon.hex_aspects.times.drawn)
             # pos_1 = self.canvas.coords(self.aspect_circles[0][1])  # [left,top,right,bottom]
             # pos_2 = self.canvas.coords(self.aspect_circles[0][2])  # [left,top,right,bottom]
-            text_width = 1.5 * (pos_1[2] - pos_2[0])
+            text_width = 1.5 * (pos_1[2] - pos_2[0] - 10)
             new_font_2 = ("Helvetica", max(1, self.fontsize))
 
             self.canvas.itemconfigure(hexagon.drawn_text, font=new_font_2, width=text_width)
@@ -247,7 +247,7 @@ class FramCanvas(tk.Frame):
     def draw_polygon_text(self, hexagon, text_width, x, y):
         hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
                                                      text=hexagon.name,
-                                                     font=("Helvetica", 7),
+                                                     font=("Helvetica", 6),
                                                      width=text_width)
 
     def draw_oval(self, hexagon):
@@ -291,8 +291,8 @@ class FramCanvas(tk.Frame):
                 font=("Helvetica", 7),
                 width=line_text_width)
 
-    def add_hexagon(self, hexagon):
-        self.hexagons.append(hexagon)
+    # def add_hexagon(self, hexagon):
+    #     self.hexagons.append(hexagon)
 
     def draw_model(self, r):
         for hexagon in self.hexagons:
@@ -309,18 +309,24 @@ class FramCanvas(tk.Frame):
                 self.draw_line_text(hexagon.connected_aspects)
 
     def get_out_text(self, xml_root, func_number):
-        f_num = -1
-        out_text = ""
+        # f_num = -1
+        # out_text = ""
+        res = []
         for o in xml_root.iter("Output"):
+            f_num = -1
+            out_text = ""
             for element in o:
                 if element.tag == "IDName":
                     out_text = element.text
                 if element.tag == "FunctionIDNr":
                     f_num = int(element.text)
                 if f_num == func_number:
-                    # pdb.set_trace()
-                    return out_text
-        return 0
+                    res.append(out_text)
+
+        if res:
+            return res
+        else:
+            return []
 
     def get_hexagon(self, id):
         for hexagon in self.hexagons:
@@ -328,21 +334,29 @@ class FramCanvas(tk.Frame):
                 return hexagon
 
     def add_connectors(self, xml_root, hexagon):
-        output_text = ""
-        if hexagon.id != 0:
-            for item in ["Input", "Precondition", "Time", "Resource", "Control"]:
-                for element in xml_root.iter(item):
-                    for items in element:
-                        if items.tag == "IDName":
-                            output_text = items.text
-                        elif items.tag == "FunctionIDNr":
-                            hex_in_number = items.text
-                    if output_text == hexagon.hex_aspects.outputs.out_text:
-                        aspect_connector = AspectConnector(
-                            aspect_in=getattr(self.get_hexagon(int(hex_in_number)).hex_aspects, item.lower() + "s"),
-                            aspect_out=hexagon.hex_aspects.outputs, text=output_text,
-                            hex_in_num=hex_in_number)
-                        hexagon.connected_aspects.append(aspect_connector)
+        for item in ["Input", "Precondition", "Time", "Resource", "Control"]:
+            for element in xml_root.iter(item):
+                output_text = ""
+                for items in element:
+                    if items.tag == "IDName":
+                        output_text = items.text
+                    elif items.tag == "FunctionIDNr":
+                        hex_in_number = items.text
+
+                if output_text in hexagon.hex_aspects.outputs.out_text:
+                    aspect_connector = AspectConnector(
+                        aspect_in=getattr(self.get_hexagon(int(hex_in_number)).hex_aspects, item.lower() + "s"),
+                        aspect_out=hexagon.hex_aspects.outputs, text=output_text,
+                        hex_in_num=hex_in_number)
+                    hexagon.connected_aspects.append(aspect_connector)
+        """this part of the code correspond to determine if the hexagon is the repeative one or not """
+        if not hexagon.connected_aspects:
+            hexagon.is_end = True
+        else:
+            """this part check if there was no text for some connected_aspects write it in user_loger for user information"""
+            if not aspect_connector.text:
+            # if not hexagon.connected_aspects[0].text:
+                self.user_logger.warning(f"there is no text on lines for function {hexagon.name} in the Model")
 
     def update_aspect_connectors(self, events):
         ## here we want to update aspect connectors with last hexagon [func 0]
@@ -365,7 +379,7 @@ class FramCanvas(tk.Frame):
                 connected_aspect.text = event.active_func_output
         self.logger.info("### aspect_connectors has been updated")
 
-    def model_upload(self, root, r):
+    def model_upload(self, root, r, flag_func_NO=False):
         root.filename = filedialog.askopenfilename(initialdir="/", title="Select file")
         xml_root = ET.parse(root.filename).getroot()
         for function in xml_root.iter("Function"):
@@ -375,7 +389,10 @@ class FramCanvas(tk.Frame):
                 elif element.tag == "IDName":
                     func_name = element.text
             out_text = self.get_out_text(xml_root, func_number)
-            name = str(func_number) + " - " + func_name
+            if flag_func_NO:
+                name = str(func_number) + " - " + func_name
+            else:
+                name = func_name
             id = func_number
             x = float(function.attrib["x"]) + 250
             y = float(function.attrib["y"]) + 150
@@ -389,7 +406,8 @@ class FramCanvas(tk.Frame):
             # is_end = (aspects.outputs.out_text == 0)
 
             hexagon = Hexagon(id=id, name=name, x=x, y=y, hex_aspects=aspects, connected_aspects=[])
-            self.add_hexagon(hexagon)
+            # self.add_hexagon(hexagon)
+            self.hexagons.append(hexagon)
 
         for hexagon in self.hexagons:
             self.add_connectors(xml_root, hexagon)

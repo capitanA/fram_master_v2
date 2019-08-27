@@ -48,14 +48,14 @@ class Start:
         self.history_list.append(h_data)
 
     def model_upload(self):
-        dynaFramCanvas.model_upload(root, r)
+        dynaFramCanvas.model_upload(root, r, show_func_No.get())
         for hexagon in dynaFramCanvas.hexagons:
             callback = partial(self.history_data_upload, hexagon.name, hexagon.id)
             popup.add_command(label=hexagon.name, command=callback)
 
     def scene_upload(self):
         events = SceneEvent()
-        filename_scene = filedialog.askopenfilename(initialdir="/", title="Select file")
+        filename_scene = filedialog.askopenfilename(initialdir="/", title="Select the file for Scenario")
         if filename_scene.endswith('.csv'):
             filetype = 'csv'
             with open(filename_scene, newline='') as csv_file:
@@ -112,7 +112,8 @@ class Start:
                                     canvas=dynaFramCanvas.canvas,
                                     speed_mode=self.speed_mode.get(), clock=CLOCK, window_width=window_width,
                                     window_height=window_height,
-                                    logger=logger, y_max=dynaFramCanvas.y_max)
+                                    logger=logger, user_logger=user_logger, y_max=dynaFramCanvas.y_max,
+                                    activation_color=color_var)
         else:
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
@@ -121,7 +122,7 @@ class Start:
                                     speed_mode=self.speed_mode.get(),
                                     clock=CLOCK, window_width=window_width,
                                     window_height=window_height, logger=logger, user_logger=user_logger,
-                                    y_max=dynaFramCanvas.y_max)
+                                    y_max=dynaFramCanvas.y_max, activation_color=color_var)
         self.method.play_recursive()
 
     def play_linear_dynamic(self, dynamic_flag):
@@ -137,7 +138,7 @@ class Start:
                                  history_list=self.history_list,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=canvas_width,
-                                 window_height=canvas_height, logger=logger,
+                                 window_height=canvas_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
         else:
 
@@ -147,7 +148,7 @@ class Start:
                                  scene_events=self.scene_event.scene_events,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
-                                 window_height=canvas_height, logger=logger,
+                                 window_height=canvas_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
         self.method.draw_model()
 
@@ -216,13 +217,19 @@ class Start:
         logger.setLevel(level)
         logger.addHandler(handler)
 
+    def changclock(self, event):
+        new_x = event.x_root
+        new_y = event.y_root - 50
+        CLOCK.place(x=new_x, y=new_y)
+        # dynaFramCanvas.canvas.move()
+
 
 if __name__ == '__main__':
 
-    """ setting looger fo proggramer"""
+    """ setting looger for programer"""
     logging.basicConfig(filename="logs.log",
                         format='%(asctime)s %(message)s',
-                        filemode='a+',
+                        filemode='w',
                         level=logging.INFO)
 
     logger = logging.getLogger(__name__)
@@ -236,7 +243,7 @@ if __name__ == '__main__':
 
     formatter = logging.Formatter('%(asctime)s:%(message)s')
 
-    handler = logging.FileHandler("user_logger.log")
+    handler = logging.FileHandler("user_logger.log", mode="w")
     handler.setFormatter(formatter)
 
     user_logger.addHandler(handler)
@@ -260,7 +267,7 @@ if __name__ == '__main__':
                                    y_coordinate))
 
     ## start FramCanvas
-    dynaFramCanvas = FramCanvas(root, canvas_width, canvas_height, logger)
+    dynaFramCanvas = FramCanvas(root, canvas_width, canvas_height, logger,user_logger)
     dynaFramCanvas.pack(side='right', fill="both", expand=True)
     popup = tk.Menu(root, tearoff=0)
     upload_icon = tk.PhotoImage(file="./Images/upload.gif")
@@ -383,6 +390,10 @@ if __name__ == '__main__':
     tk.Checkbutton(root,
                    text="Show inactive\nfunctions",
                    variable=show_hide_flag).pack(side='top', anchor="w")
+    show_func_No = tk.BooleanVar()
+    show_func_No.set("True")
+
+    tk.Checkbutton(root, text="show functions' number ", variable=show_func_No).pack(side="top", anchor="w")
     # show_hide_flag = tk.BooleanVar()
     # tk.Checkbutton(root,
     #                text="Show inactive\nfunctions",
@@ -417,7 +428,18 @@ if __name__ == '__main__':
                      height=2,
                      width=14,
                      font=("Helvetica", 10),
-                     bg='tomato')
+                     bg='tomato', relief="solid")
+    label_color = tk.Label(root, text="activation color", height=2,
+                           width=14,
+                           fg="black",
+                           font=("Helvetica", 10), anchor="sw")
+    label_color.pack(side='top', anchor="w")
+    color_var = tk.StringVar()
+    color_var.set("set Color")
+    set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
+    set_color.pack(side='top', anchor="w")
+
+    CLOCK.bind('<B1-Motion>', start.changclock)
     CLOCK.pack(side='top', anchor="w")
     # root.protocol("WM_DELETE_WINDOW", start.ask_quit)
     root.mainloop()
