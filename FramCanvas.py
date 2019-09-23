@@ -10,7 +10,8 @@ r = 40
 
 
 class FramCanvas(tk.Frame):
-    def __init__(self, root_fram, canvas_width_fram, canvas_height_fram, logger, user_logger):
+    def __init__(self, root_fram, window_width, window_height, canvas_width_fram, canvas_height_fram, logger,
+                 user_logger):
 
         tk.Frame.__init__(self, root_fram)  # what is this? --->this is our canvas
         self.canvas_width_fram = canvas_width_fram
@@ -27,6 +28,8 @@ class FramCanvas(tk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("current"))
         self.xsb.grid(row=1, column=0, sticky="ew")
         self.ysb.grid(row=0, column=1, sticky="ns")
+        self.window_width = window_width
+        self.window_height = window_height
 
         self.canvas.bind("<ButtonPress-1>", self.scroll_start)
         self.canvas.bind("<B1-Motion>", self.scroll_move)
@@ -50,6 +53,8 @@ class FramCanvas(tk.Frame):
         self.user_logger = user_logger
         self.y_max = 0
         self.fontsize = 12
+        self.true_x = 0
+        self.true_y = 0
 
     def scroll_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
@@ -73,6 +78,9 @@ class FramCanvas(tk.Frame):
         """
         The zooming action
         """
+        self.true_x = self.canvas.canvasx(event.x)
+        self.true_y = self.canvas.canvasy(event.y)
+
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         true_x = self.canvas.canvasx(event.x)
         true_y = self.canvas.canvasy(event.y)
@@ -103,22 +111,22 @@ class FramCanvas(tk.Frame):
                     if attr == "resources":
                         if value.y_oright > self.y_max:
                             self.y_max = value.y_oright
-                    if value.o_name == "O":
 
-                        h.hex_aspects.outputs.x_sline = h_coords[i][0] + 40 * math.cos(slice["O"] * sweep) / 6
+                    if value.o_name == "O":
+                        h.hex_aspects.outputs.x_sline = h_coords[i][0] + 40 * math.cos(slice["O"] * sweep) / 6  # r=40
                         h.hex_aspects.outputs.y_sline = h_coords[i][1] + 40 * math.sin(slice["O"] * sweep) / 6
                     elif value.o_name == "C":
-                        h.hex_aspects.controls.x_sline = h_coords[i][2] + 40 * math.cos(slice["C"] * sweep) / 6
+                        h.hex_aspects.controls.x_sline = h_coords[i][2] + 40 * math.cos(slice["C"] * sweep) / 6  # r=40
                         h.hex_aspects.controls.y_sline = h_coords[i][3] + 40 * math.sin(slice["C"] * sweep) / 6
                     elif value.o_name == "T":
-                        h.hex_aspects.times.x_sline = h_coords[i][4] + 40 * math.cos(slice["T"] * sweep) / 6
+                        h.hex_aspects.times.x_sline = h_coords[i][4] + 40 * math.cos(slice["T"] * sweep) / 6  # r=40
                         h.hex_aspects.times.y_sline = h_coords[i][5] + 40 * math.sin(slice["T"] * sweep) / 6
                     elif value.o_name == "I":
-                        h.hex_aspects.inputs.x_sline = h_coords[i][6] + 40 * math.cos(slice["I"] * sweep) / 6
+                        h.hex_aspects.inputs.x_sline = h_coords[i][6] + 40 * math.cos(slice["I"] * sweep) / 6  # r=40
                         h.hex_aspects.inputs.y_sline = h_coords[i][7] + 40 * math.sin(slice["I"] * sweep) / 6
                     elif value.o_name == "P":
                         h.hex_aspects.preconditions.x_sline = h_coords[i][8] + 40 * math.cos(slice["P"] * sweep) / 6
-                        h.hex_aspects.preconditions.y_sline = h_coords[i][9] + 40 * math.sin(slice["P"] * sweep) / 6
+                        h.hex_aspects.preconditions.y_sline = h_coords[i][9] + 100 * math.sin(slice["P"] * sweep) / 6
                     elif value.o_name == "R":
                         h.hex_aspects.resources.x_sline = h_coords[i][10] + 40 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.y_sline = h_coords[i][11] + 40 * math.sin(slice["R"] * sweep) / 6
@@ -185,7 +193,8 @@ class FramCanvas(tk.Frame):
                         text = connected_aspect.drawn_text
             str_text = self.canvas.itemcget(text, "font")
             text_width = int(self.canvas.itemcget(text, "width"))
-            new_text_width = round(11 * text_width / 10)
+            # ipdb.set_trace()
+            new_text_width = round(1.03 * text_width)
             new_font = min([int(s) for s in str_text.split() if s.isdigit()][0], new_font)
             new_font += 1
             new_font_2 = ("Helvetica", max(1, self.fontsize))
@@ -201,7 +210,7 @@ class FramCanvas(tk.Frame):
                         text = connected_aspect.drawn_text
             str_text = self.canvas.itemcget(text, "font")
             text_width = int(self.canvas.itemcget(text, "width"))
-            new_text_width = round(10 * text_width / 11)
+            new_text_width = round(0.97 * text_width)
             new_font = min([int(s) for s in str_text.split() if s.isdigit()][0], new_font)
             new_font -= 1
             new_font_2 = ("Helvetica", max(1, self.fontsize))
@@ -224,7 +233,9 @@ class FramCanvas(tk.Frame):
             pos_2 = self.canvas.coords(hexagon.hex_aspects.times.drawn)
             # pos_1 = self.canvas.coords(self.aspect_circles[0][1])  # [left,top,right,bottom]
             # pos_2 = self.canvas.coords(self.aspect_circles[0][2])  # [left,top,right,bottom]
-            text_width = 1.5 * (pos_1[2] - pos_2[0] - 10)
+
+            # text_width = 1.5 * (pos_1[2] - pos_2[0] - 10)
+            text_width = 1 * (pos_1[2] - pos_2[0])
             new_font_2 = ("Helvetica", max(1, self.fontsize))
 
             self.canvas.itemconfigure(hexagon.drawn_text, font=new_font_2, width=text_width)
@@ -243,6 +254,7 @@ class FramCanvas(tk.Frame):
                                                    hexagon.hex_aspects.resources.x_c,
                                                    hexagon.hex_aspects.resources.y_c,
                                                    fill="white", outline="black")
+        self.canvas.tag_lower(hexagon.drawn)
 
     def draw_polygon_text(self, hexagon, text_width, x, y):
         hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
@@ -280,10 +292,14 @@ class FramCanvas(tk.Frame):
 
             # object.drawn = lcurve(self.canvas, 200, 300, 700, 600)
 
-    def draw_line_text(self, connected_Aspects):
-        for object in connected_Aspects:
-            line_text_width = min(0.8 * abs(object.aspect_out.x_sline
-                                            - object.aspect_in.x_sline), 4 * r)
+    def draw_line_text(self, hexagon):
+        for object in hexagon.connected_aspects:
+            # if abs(object.aspect_out.x_sline - object.aspect_in.x_sline) < 45:
+            line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
+            # else:
+
+            # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
+            #                                 - object.aspect_in.x_sline), 4 * r)
             object.drawn_text = self.canvas.create_text(
                 (object.aspect_in.x_sline + object.aspect_out.x_sline) / 2,
                 (object.aspect_in.y_sline + object.aspect_out.y_sline) / 2, anchor="center",
@@ -298,7 +314,7 @@ class FramCanvas(tk.Frame):
         for hexagon in self.hexagons:
             x = hexagon.x
             y = hexagon.y
-            text_width = 1.5 * (hexagon.hex_aspects.controls.x_c - hexagon.hex_aspects.times.x_c)
+            text_width = 1 * (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.inputs.x_c)
 
             self.draw_polygon(hexagon)
             self.draw_polygon_text(hexagon, text_width, x, y)
@@ -306,7 +322,7 @@ class FramCanvas(tk.Frame):
             self.draw_oval_text(hexagon)
             if not hexagon.is_end:
                 self.draw_line(hexagon.connected_aspects)
-                self.draw_line_text(hexagon.connected_aspects)
+                self.draw_line_text(hexagon)
 
     def get_out_text(self, xml_root, func_number):
         # f_num = -1
@@ -355,7 +371,7 @@ class FramCanvas(tk.Frame):
         else:
             """this part check if there was no text for some connected_aspects write it in user_loger for user information"""
             if not aspect_connector.text:
-            # if not hexagon.connected_aspects[0].text:
+                # if not hexagon.connected_aspects[0].text:
                 self.user_logger.warning(f"there is no text on lines for function {hexagon.name} in the Model")
 
     def update_aspect_connectors(self, events):
@@ -419,3 +435,20 @@ class FramCanvas(tk.Frame):
     def reset_canvas(self):
         self.hexagons.clear()
         self.canvas.delete("all")
+        # self.canvas.geometry("%dx%d+%d+%d" % (self.window_width,
+        #                                window_height,
+        #                                x_coordinate,
+        #                                y_coordinate))
+        # self.canvas.configure(scrollregion=self.canvas.bbox("current"))
+        # self.canvas.configure(width=self.canvas_width_fram, height=self.canvas_height_fram)
+        # self.canvas.xview_moveto(self.true_x)
+
+        # self.canvas.xview_moveto(self.canvas.winfo_width())
+        # self.canvas.xview_moveto(0)
+
+        # self.canvas.yview_moveto(self.true_y)
+
+        # self.canvas.yview_moveto(0)
+        # self.canvas.yview_moveto(self.canvas.winfo_height())
+        # self.canvas.grid(row=0, column=0)
+        # self.tk.Fram.geometry(self.winfo_width, self.window_height, 0, 0)

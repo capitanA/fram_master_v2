@@ -48,7 +48,7 @@ class Recursive:
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
-        self.activation_color = Dic_color[activation_color.get()]
+        # self.activation_color = Dic_color[activation_color.get()]
         self.hexagons = hexagons
         self.scene_events = scene_events
         # self.f_choice = f_choice
@@ -71,9 +71,21 @@ class Recursive:
     def set_video(self, timer):
         """creating the file and directory for video"""
         self.file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
+        truncated_width = self.canvas.winfo_width() - (self.window_width * 0.75)
+        truncated_height = self.canvas.winfo_height() - (self.window_height * 0.75)
+        # self.canvas.create_text(truncated_width,truncated_height , anchor="center",
+        #                         text="truncated",
+        #                         font=("Helvetica", 9),
+        #                         width=100
+        #                         )
+        # self.canvas.create_text(int(self.window_width*0.75), int(self.window_height*0.75), anchor="center",
+        #                         text="0.25",
+        #                         font=("Helvetica", 9),
+        #                         width=100
+        #                         )
         if self.file_name.split("/")[-1]:
             x = self.canvas.winfo_width() / 2
-            y = self.canvas.winfo_height() - 50
+            y = self.canvas.winfo_height() - 100
             self.clock.place(x=x, y=y)
             cwd = os.getcwd()
             directory = os.path.join(cwd, "Videos")
@@ -83,22 +95,41 @@ class Recursive:
             if len(directory_new) < 5 or directory_new[-4:] != ".avi":
                 directory_new += ".avi"
             fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            # truncated_width = self.window_width - self.canvas.winfo_reqwidth()
+            # truncated_width = self.window_width - self.canvas.winfo_width()
+            # truncated_height = self.window_height - self.canvas.winfo_height()
 
+            # truncated_height = self.window_height - self.canvas.winfo_reqheight()
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+            #                            ((int(self.window_width * 0.75)),
+            #                             (int(self.window_height * 0.75))))
+            #
             self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-                                       ((int(self.canvas.winfo_width() * 2) - 360),
-                                        (int(self.canvas.winfo_height() * 2) - 190)))
+                                       ((int(self.canvas.winfo_width())),
+                                        (int(self.canvas.winfo_height()))))
+
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+            #                            (self.window_width * 0.75,
+            #                             self.window_height * 0.75))
+
+            # print(f"this is height{self.canvas.winfo_reqheight()}")
+            # ipdb.set_trace()
             # self.vid = cv2.VideoWriter(directory_new, fourcc, 5.0,
             #                            (int(self.window_width * 2), int(self.window_height * 2)))
 
             # loop_video = threading.Thread(target=self.loop_video, args=(timer,))
-            loop_video = threading.Thread(target=self.loop_video)
+            loop_video = threading.Thread(target=self.loop_video, args=(truncated_width, truncated_height,))
             loop_video.start()
+            # ipdb.set_trace()
 
-    def loop_video(self):
+    def loop_video(self, *argv):
+        print(argv[0])
+        print(argv[1])
         while True:
+
             # if timer.current_time != self.max_time and not self.stop:
-            img = ImageGrab.grab(bbox=(360, 190, self.canvas.winfo_width() * 2, self.canvas.winfo_height() * 2))
-            # img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
+            # img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_width))
+            img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_height))
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
             self.vid.write(frame)
             # self.timer.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
@@ -221,7 +252,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bbox[0], bbox[1], bbox[2], bbox[3], start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline=self.activation_color))
+                                   outline="tomato"))
 
     def draw_halfcircle_lasthexagon(self, connected_aspect, step):
         start_ang = 270 - (36 * (step - 5))
@@ -244,7 +275,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bboxx1, bboxy1, bboxx2, bboxy2, start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline=self.activation_color))
+                                   outline="tomato"))
 
     def draw_slice_curve(self, step, arcs, connected_aspect, last_hexagon):
         if not connected_aspect.active_drawns:
@@ -263,7 +294,7 @@ class Recursive:
                                                                          extent=extend,
                                                                          style=tk.ARC,
                                                                          width=1.5,
-                                                                         outline=self.activation_color))
+                                                                         outline="tomato"))
         else:
             if not last_hexagon:
                 if step <= 5:  ## first half
@@ -278,7 +309,7 @@ class Recursive:
                                                                              extent=extend,
                                                                              style=tk.ARC,
                                                                              width=1.9,
-                                                                             outline=self.activation_color))
+                                                                             outline="tomato"))
             else:
                 if step <= 5:
                     self.draw_circle_lasthexagon(connected_aspect, step)
@@ -346,18 +377,19 @@ class Recursive:
     def activator(self, event, hexagon, duration_time, connected_aspect):
         ## activating hexagon, input aspect and output aspect
         if not hexagon.is_active:
-            self.canvas.itemconfigure(hexagon.drawn, fill=self.activation_color)
+            self.canvas.itemconfigure(hexagon.drawn, fill="tomato")
             hexagon.is_active = True
             # self.logger.info('### function {} is activated'.format(event.active_func))
 
-        self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill=self.activation_color)
-        self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill=self.activation_color)
+        self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="tomato")
+        self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
         connected_aspect.is_active = True
         self.logger.info('### {} is activated'.format(str(connected_aspect)))
 
         ## activating event text
-        line_text_width = min(0.8 * abs(connected_aspect.aspect_out.x_sline
-                                        - connected_aspect.aspect_in.x_sline), 4 * 40)
+        # line_text_width = min(0.8 * abs(connected_aspect.aspect_out.x_sline
+        #                                 - connected_aspect.aspect_in.x_sline), 4 * 40)
+        line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
         if self.history_list and hexagon.name in [item.f_choice for item in self.history_list]:
             pass
 
@@ -567,8 +599,8 @@ class Recursive:
         self.timer = MyThread(last_time=int(last_time), current_time=-1, label=self.clock, root=self.root,
                               speed_mode=self.speed_mode)
 
-        self.timer.start()
         self.set_video(self.timer)  # start the video recorder
+        self.timer.start()
 
         # here the program will check for update every [interval] milliseconds
         interval = DIC_TIME[self.speed_mode]

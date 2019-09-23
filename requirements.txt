@@ -1,4 +1,4 @@
 numpy
-opencv-python
 Pillow
 ipdb
+opencv-python-headless

@@ -113,7 +113,7 @@ class Start:
                                     speed_mode=self.speed_mode.get(), clock=CLOCK, window_width=window_width,
                                     window_height=window_height,
                                     logger=logger, user_logger=user_logger, y_max=dynaFramCanvas.y_max,
-                                    activation_color=color_var)
+                                    activation_color=0)
         else:
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
@@ -122,7 +122,7 @@ class Start:
                                     speed_mode=self.speed_mode.get(),
                                     clock=CLOCK, window_width=window_width,
                                     window_height=window_height, logger=logger, user_logger=user_logger,
-                                    y_max=dynaFramCanvas.y_max, activation_color=color_var)
+                                    y_max=dynaFramCanvas.y_max, activation_color=0)
         self.method.play_recursive()
 
     def play_linear_dynamic(self, dynamic_flag):
@@ -137,8 +137,8 @@ class Start:
                                  scene_events=self.scene_event.scene_events,
                                  history_list=self.history_list,
                                  speed_mode=self.speed_mode.get(),
-                                 clock=CLOCK, window_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, user_logger=user_logger,
+                                 clock=CLOCK, window_width=window_width,
+                                 window_height=window_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
         else:
 
@@ -148,7 +148,7 @@ class Start:
                                  scene_events=self.scene_event.scene_events,
                                  speed_mode=self.speed_mode.get(),
                                  clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
-                                 window_height=canvas_height, logger=logger, user_logger=user_logger,
+                                 window_height=window_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
         self.method.draw_model()
 
@@ -267,7 +267,7 @@ if __name__ == '__main__':
                                    y_coordinate))
 
     ## start FramCanvas
-    dynaFramCanvas = FramCanvas(root, canvas_width, canvas_height, logger,user_logger)
+    dynaFramCanvas = FramCanvas(root,window_width,window_height, canvas_width, canvas_height, logger, user_logger)
     dynaFramCanvas.pack(side='right', fill="both", expand=True)
     popup = tk.Menu(root, tearoff=0)
     upload_icon = tk.PhotoImage(file="./Images/upload.gif")
@@ -429,15 +429,16 @@ if __name__ == '__main__':
                      width=14,
                      font=("Helvetica", 10),
                      bg='tomato', relief="solid")
-    label_color = tk.Label(root, text="activation color", height=2,
-                           width=14,
-                           fg="black",
-                           font=("Helvetica", 10), anchor="sw")
-    label_color.pack(side='top', anchor="w")
-    color_var = tk.StringVar()
-    color_var.set("set Color")
-    set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
-    set_color.pack(side='top', anchor="w")
+    """this is for activation color"""
+    # label_color = tk.Label(root, text="activation color", height=2,
+    #                        width=14,
+    #                        fg="black",
+    #                        font=("Helvetica", 10), anchor="sw")
+    # label_color.pack(side='top', anchor="w")
+    # color_var = tk.StringVar()
+    # color_var.set("set Color")
+    # set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
+    # set_color.pack(side='top', anchor="w")
 
     CLOCK.bind('<B1-Motion>', start.changclock)
     CLOCK.pack(side='top', anchor="w")

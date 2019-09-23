@@ -47,7 +47,7 @@ class Linear:
         self.canvas = canvas
         self.window_width = window_width
         self.window_height = window_height
-        self.cavas_width = canvas_width
+        # self.cavas_width = canvas_width
         self.show_hide_flag = show_hide_flag
         self.history_list = history_list
         self.history_times = set()
@@ -86,32 +86,44 @@ class Linear:
 
     def set_video(self):
         """creating the file and directory for video"""
-        file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
+        self.file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
         if self.file_name.split("/")[-1]:
-            # x = self.canvas.winfo_width() / 2
-            # y = self.canvas.winfo_height() - 50
-            # self.clock.place(x=x, y=y)
+            x = self.canvas.winfo_width() / 2
+            y = self.canvas.winfo_height() - 100
+            self.clock.place(x=x, y=y)
             cwd = os.getcwd()
             directory = os.path.join(cwd, "Videos")
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            directory_new = os.path.join(directory, file_name.split("/")[-1])
+            directory_new = os.path.join(directory, self.file_name.split("/")[-1])
             if len(directory_new) < 5 or directory_new[-4:] != ".avi":
                 directory_new += ".avi"
             fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-            #                            ((int(self.canvas.winfo_width() * 2) - 360),
-            #                             (int(self.canvas.winfo_height() * 2) - 190)))
-            self.vid = cv2.VideoWriter(directory_new, fourcc, 5, (int(self.window_width * 2), int(self.window_height * 2)))
-            self.loop_video()
+            truncated_width = self.window_width - self.canvas.winfo_width()
+            truncated_height = self.window_height - self.canvas.winfo_height()
+            # print(f"width and height :{truncated_width,truncated_height}")
 
-    def loop_video(self):
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+            #                            ((int(self.canvas.winfo_width() ) - 202),
+            #                             (int(self.canvas.winfo_height() ) - 120)))
+
+            self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+                                       (int(self.canvas.winfo_width()), int(self.canvas.winfo_height())))
+            self.loop_video(truncated_width, truncated_height)
+            # ipdb.set_trace()
+
+    def loop_video(self, truncated_width, truncated_height):
         """this function is for video in which each time a frame(image) write into the vid object """
         if self.time != self.max_time and not self.stop:
-            img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
+            # img = ImageGrab.grab(bbox=(truncated_width, truncated_height, int(self.window_width*0.75), int(self.window_height*0.75)))
+            img = ImageGrab.grab(
+                bbox=(truncated_width, truncated_height, self.window_width, self.window_height))
+            # img = ImageGrab.grab(bbox=(202, 120, self.canvas.winfo_width() , self.canvas.winfo_height() ))
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
             self.vid.write(frame)
-            self.clock.after(int(DIC_TIME[self.speed_mode] / 24), self.loop_video)
+            # self.clock.after(int(DIC_TIME[self.speed_mode] / 24), self.loop_video, truncated_width, truncated_height)
+            self.clock.after(int(1000 / 5), self.loop_video, truncated_width, truncated_height)
+
         else:
             print("End of recording")
             self.vid.release()
@@ -267,9 +279,9 @@ class Linear:
                                                        text=value.o_name,
                                                        font=("Arial", 10))
 
-    def draw_line(self, connected_aspects):
+    def draw_line(self, hexagon):
 
-        for object in connected_aspects:
+        for object in hexagon.connected_aspects:
             object.drawn = lcurve(self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
@@ -277,7 +289,8 @@ class Linear:
 
             # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
             #                                 - object.aspect_in.x_sline), 4 * 40)
-            line_text_width = 4 * 40
+            # line_text_width = 4 * 40
+            line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
             # pdb.set_trace()
             if object.aspect_in.x_sline - object.aspect_out.x_sline < 70 and abs(
                     object.aspect_in.y_sline - object.aspect_out.y_sline) < 15:
@@ -488,20 +501,21 @@ class Linear:
             self.draw_oval(hexagon)
             self.draw_oval_text(hexagon)
             if index != self.hexagons.index(self.hexagons[-1]):
-                self.draw_line(hexagon.connected_aspects)
+                self.draw_line(hexagon)
         self.aspects_activation()
         if not self.dynamic_flag:
             self.draw_time_line()
 
-    def draw_line_inactive_funcs(self, connected_aspects):
-        for object in connected_aspects:
+    def draw_line_inactive_funcs(self, hexagon):
+        for object in hexagon.connected_aspects:
             object.drawn = lcurve(self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline, linear=True)
 
-            line_text_width = min(0.8 * abs(object.aspect_out.x_sline
-                                            - object.aspect_in.x_sline), 4 * 40)
+            # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
+            #                                 - object.aspect_in.x_sline), 4 * 40)
+            line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
 
             object.drawn_text = self.canvas.create_text(
                 (object.aspect_in.x_sline + object.aspect_out.x_sline) / 2,
@@ -568,7 +582,7 @@ class Linear:
                 self.draw_polygon_text(hexagon)
                 self.draw_oval(hexagon)
                 self.draw_oval_text(hexagon)
-                self.draw_line_inactive_funcs(hexagon.connected_aspects)
+                self.draw_line_inactive_funcs(hexagon)
 
     def get_cycle_duration(self):
         last_time = 0
@@ -704,7 +718,6 @@ class Linear:
         #             return hexagon
 
     def create_inactive_connected_aspect(self, hexagon, inactive_connected_aspect):
-        conn_list = []
         for connected_aspect in inactive_connected_aspect:
             hex_in_num = connected_aspect.hex_in_num
             list_index = hexagon.cycle
@@ -718,9 +731,9 @@ class Linear:
                 aspect_out=aspect_out,
                 text=text,
                 hex_in_num=hex_in_num)
-            conn_list.append(connected_aspect)
-        self.draw_line(conn_list)
-        return conn_list
+            hexagon.connected_aspects.append(connected_aspect)
+        self.draw_line(hexagon)
+        return hexagon.connected_aspects
 
     """this is when an inactivated hexagon.connected_aspect need to be filled with attribute of a hexagon.connected_Aspect from model.
      so we search in hexagon from model and get the attribute of that hexagon.connected_aspect which that match by its Id and get the properties of them """
@@ -773,8 +786,8 @@ class Linear:
             for history_data in self.history_list:
                 for event in history_data.history_events:
                     self.history_times.add(int(event.time))
-        self.loop_linear(directory_new=directory_new)
         self.set_video()
+        self.loop_linear(directory_new=directory_new)
 
     def history_event_generator(self):
         for history_event in self.history_events:
