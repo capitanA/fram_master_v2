@@ -342,7 +342,7 @@ class Linear:
 
             out_func = event.active_func
             in_func = event.dstream_coupled_func
-            # ipdb.set_trace()
+
             self.set_cycle(out_func, self.row, True)
             out_index = (self.cycle * len(self.hexagons_from_model)) + out_func
             out_hexagon = self.get_hexagon_by_index(out_index)
@@ -350,10 +350,10 @@ class Linear:
                 print(f"{event.time_stamp}")
             self.set_cycle(in_func, self.row, False)
             self.check_for_discripancy(self.row, in_func)
+
             in_index = (self.cycle * len(self.hexagons_from_model)) + in_func
             in_hexagon = self.get_hexagon_by_index(in_index)
             if in_hexagon:
-
                 connected_aspect = AspectConnector(
                     aspect_in=getattr(in_hexagon.hex_aspects, take_o_name(event.dstream_func_aspect)),
                     aspect_out=out_hexagon.hex_aspects.outputs,

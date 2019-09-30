@@ -55,6 +55,7 @@ class FramCanvas(tk.Frame):
         self.fontsize = 12
         self.true_x = 0
         self.true_y = 0
+        # self.reset = False
 
     def scroll_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
@@ -99,6 +100,7 @@ class FramCanvas(tk.Frame):
         Update the coordinates of the hexagon objects on the canvas, activated whenever the objects
         are moved
         """
+        I=0
         slice = {"O": 0, "C": 1, "T": 2, "I": 3, "P": 4, "R": 5}
         sweep = -math.pi * 2 / 6
         if self.hexagons:
@@ -107,6 +109,7 @@ class FramCanvas(tk.Frame):
             for hexagon in self.hexagons:
                 h_coords.append(self.canvas.coords(hexagon.drawn))
             for i, h in enumerate(self.hexagons):
+                I+=1
                 for attr, value in h.hex_aspects.__dict__.items():  # loop over [O, C, T, I, P, R]
                     if attr == "resources":
                         if value.y_oright > self.y_max:
@@ -126,10 +129,11 @@ class FramCanvas(tk.Frame):
                         h.hex_aspects.inputs.y_sline = h_coords[i][7] + 40 * math.sin(slice["I"] * sweep) / 6
                     elif value.o_name == "P":
                         h.hex_aspects.preconditions.x_sline = h_coords[i][8] + 40 * math.cos(slice["P"] * sweep) / 6
-                        h.hex_aspects.preconditions.y_sline = h_coords[i][9] + 100 * math.sin(slice["P"] * sweep) / 6
+                        h.hex_aspects.preconditions.y_sline = h_coords[i][9] + 40 * math.sin(slice["P"] * sweep) / 6
                     elif value.o_name == "R":
                         h.hex_aspects.resources.x_sline = h_coords[i][10] + 40 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.y_sline = h_coords[i][11] + 40 * math.sin(slice["R"] * sweep) / 6
+            print(I)
 
     def zoom_aspect_circles_text(self):
         """
@@ -139,7 +143,7 @@ class FramCanvas(tk.Frame):
         # :param new_font_2: updated font of the text
         # :param line_size: updated size of the circle's border
         """
-        # pdb.set_trace()
+        # if not self.reset:
         pos = self.canvas.coords(self.hexagons[0].drawn)  # [left,top,right,bottom]
         text_width = abs(0.8 * (pos[2] - pos[0]))
         self.fontsize = int(round(text_width / 1.5))
@@ -184,6 +188,7 @@ class FramCanvas(tk.Frame):
         # :param new_font: initial updated font
         # :param flag: tells the function whether to zoom in or out
         """
+        # if not self.reset:
         new_font = 100
         if flag > 0:
 
@@ -202,7 +207,8 @@ class FramCanvas(tk.Frame):
             for hexagon in self.hexagons:
                 for connected_aspect in hexagon.connected_aspects:
                     if connected_aspect:
-                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2, width=new_text_width)
+                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2,
+                                                  width=new_text_width)
         elif flag < 0:
             for hexagon in self.hexagons:
                 for connected_aspect in hexagon.connected_aspects:
@@ -218,7 +224,8 @@ class FramCanvas(tk.Frame):
             for hexagon in self.hexagons:
                 for connected_aspect in hexagon.connected_aspects:
                     if connected_aspect:
-                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2, width=new_text_width)
+                        self.canvas.itemconfigure(connected_aspect.drawn_text, font=new_font_2,
+                                                  width=new_text_width)
 
     def zoom_hexagons_text(self):
         """
@@ -254,7 +261,7 @@ class FramCanvas(tk.Frame):
                                                    hexagon.hex_aspects.resources.x_c,
                                                    hexagon.hex_aspects.resources.y_c,
                                                    fill="white", outline="black")
-        self.canvas.tag_lower(hexagon.drawn)
+        self.canvas.tag_raise(hexagon.drawn)
 
     def draw_polygon_text(self, hexagon, text_width, x, y):
         hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
@@ -433,6 +440,7 @@ class FramCanvas(tk.Frame):
         self.logger.info('### model has been uploaded')
 
     def reset_canvas(self):
+        # self.reset = True
         self.hexagons.clear()
         self.canvas.delete("all")
         # self.canvas.geometry("%dx%d+%d+%d" % (self.window_width,

@@ -67,6 +67,7 @@ class Recursive:
         self.vid = None
         self.file_name = None
         self.recursive_funcs = set(hexagon.id for hexagon in self.hexagons if hexagon.is_end)
+        self.p_x = 0
 
     def set_video(self, timer):
         """creating the file and directory for video"""
@@ -104,9 +105,13 @@ class Recursive:
             #                            ((int(self.window_width * 0.75)),
             #                             (int(self.window_height * 0.75))))
             #
+            # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+            #                            ((int(self.canvas.winfo_width())),
+            #                             (int(self.canvas.winfo_height()))))
+
             self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-                                       ((int(self.canvas.winfo_width())),
-                                        (int(self.canvas.winfo_height()))))
+                                       ((int(self.window_width * 2) ),
+                                        (int(self.window_height * 2) )))
 
             # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
             #                            (self.window_width * 0.75,
@@ -129,7 +134,9 @@ class Recursive:
 
             # if timer.current_time != self.max_time and not self.stop:
             # img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_width))
-            img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_height))
+
+            # img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_height))
+            img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
             self.vid.write(frame)
             # self.timer.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
@@ -159,44 +166,69 @@ class Recursive:
 
         # return [event for event in self.scene_events if event.time_stamp == time_stamp]
 
-    def first_half_of_arc(self, arcs, step, last_hexagon):
-        ## we should get curve with start_ang 0 or 270
-        arc = arcs[0] if arcs[0].start_ang in [0, 270] else arcs[1]
-        if not last_hexagon:
-            if arc.start_ang == 0:
-                start_ang = 90 - (step * 18)
-                extend = step * 18
-            else:
-                start_ang = arc.start_ang
-                extend = step * 18
-            return arc, start_ang, extend
+    def first_half_of_arc(self, arcs, step, last_hexagon, curve_flag):
+        if not curve_flag:
+            ## we should get curve with start_ang 0 or 270
+            arc = arcs[0] if arcs[0].start_ang in [0, 270] else arcs[1]
+            if not last_hexagon:
+                if arc.start_ang == 0:
+                    start_ang = 90 - (step * 18)
+                    extend = step * 18
 
-        if arc.start_ang == 0:
-            start_ang = arc.start_ang
-            extend = (step - 5) * 18
+                else:
+                    start_ang = arc.start_ang - 4
+                    extend = step * 18
+                return arc, start_ang, extend
+
+            # if arc.start_ang == 0:
+            #     start_ang = arc.start_ang
+            #     extend = (step - 5) * 18
+            # else:
+            #     start_ang = 360 - ((step - 5) * 18)
+            #     extend = (step - 5) * 18
+            # return arc, start_ang, extend
         else:
-            start_ang = 360 - ((step - 5) * 18)
-            extend = (step - 5) * 18
-        return arc, start_ang, extend
+            arc = arcs[0] if arcs[0].start_ang in [0, 270] else arcs[1]
+            if not last_hexagon:
+                if arc.start_ang == 0:
+                    start_ang = arc.start_ang
+                    extend = step * 18
+                else:
+                    start_ang = 360 - (step * 18)
+                    extend = step * 18
+                return arc, start_ang, extend
 
-    def second_half_of_arc(self, arcs, step, last_hexagon):
-        arc = arcs[0] if arcs[0].start_ang in [90, 180] else arcs[1]
-        if not last_hexagon:
-            if arc.start_ang == 90:
-                start_ang = 180 - ((step - 5) * 18)
-                extend = (step - 5) * 18
-            else:
-                start_ang = arc.start_ang
-                extend = (step - 5) * 18
-            return arc, start_ang, extend
+    def second_half_of_arc(self, arcs, step, last_hexagon, curve_flag):
+        if not curve_flag:
+            arc = arcs[0] if arcs[0].start_ang in [90, 180] else arcs[1]
+            if not last_hexagon:
+                if arc.start_ang == 90:
+                    start_ang = 180 - ((step - 5) * 18)
+                    extend = (step - 5) * 18
 
-        if arc.start_ang == 90:
-            start_ang = arc.start_ang
-            extend = step * 18
+                else:
+                    start_ang = arc.start_ang
+                    extend = (step - 5) * 18
+                return arc, start_ang, extend
+
+            # if arc.start_ang == 90:
+            #     start_ang = arc.start_ang
+            #     extend = step * 18
+            # else:
+            #     start_ang = 270 - (step * 18)
+            #     extend = step * 18
+            # return arc, start_ang, extend
         else:
-            start_ang = 270 - (step * 18)
-            extend = step * 18
-        return arc, start_ang, extend
+            arc = arcs[0] if arcs[0].start_ang in [90, 180] else arcs[1]
+            if not last_hexagon:
+                if arc.start_ang == 90:
+                    start_ang = arc.start_ang
+                    extend = (step - 5) * 18
+
+                else:
+                    start_ang = 270 - ((step - 5) * 18)
+                    extend = (step - 5) * 18
+                return arc, start_ang, extend
 
     def get_bbox_lasthexagon(self, connected_aspect):
         x0 = connected_aspect.aspect_out.x_sline
@@ -277,30 +309,62 @@ class Recursive:
                                    width=1.5,
                                    outline="tomato"))
 
+    def get_hexagon(self, id):
+        """getting the hexagons of model which was drawn in the canvas """
+        for hexagon in self.hexagons_from_model:
+            if hexagon.id == id:
+                return hexagon
+
     def draw_slice_curve(self, step, arcs, connected_aspect, last_hexagon):
+        curve_flag = False
         if not connected_aspect.active_drawns:
             connected_aspect.active_drawns = []
+        # ipdb.set_trace()
 
         ## each curve consists of two arcs so each little red pieces should be (180 / 10) = 18 degree
         if len(arcs) == 1:  ## straight curve
-            arc = arcs[0]
-            start_ang = 180 - (step * 18)
-            extend = step * 18
-            connected_aspect.active_drawns.append(self.canvas.create_arc(arc.bbox_x1,
-                                                                         arc.bbox_y1,
-                                                                         arc.bbox_x2,
-                                                                         arc.bbox_y2,
-                                                                         start=start_ang,
-                                                                         extent=extend,
-                                                                         style=tk.ARC,
-                                                                         width=1.5,
-                                                                         outline="tomato"))
+            x0 = connected_aspect.aspect_out.x_sline
+            y0 = connected_aspect.aspect_out.y_sline
+            x1 = connected_aspect.aspect_in.x_sline
+            y1 = connected_aspect.aspect_in.y_sline
+            interval_x = abs(x1 - x0) / 10
+            interval_y = abs(y1 - y0) / 10
+            p_x = x0
+            p_y = y0
+            if interval_x == 0:
+                p_x = x1
+            elif interval_y == 0:
+                p_y = y1
+            else:
+                # else:
+                if y1 > y0 and x0 < x1:
+                    p_x += interval_x * step
+                    p_y += interval_y * step
+                elif y1 < y0 and x0 < x1:
+                    p_x += interval_x * step
+                    p_y -= interval_y * step
+                elif y1 > y0 and x0 > x1:
+                    p_x -= interval_x * step
+                    p_y += interval_y * step
+                else:
+                    p_x -= interval_x * step
+                    p_y -= interval_y * step
+
+            connected_aspect.active_drawns.append(self.canvas.create_line(x0,
+                                                                          y0,
+                                                                          p_x,
+                                                                          p_y,
+                                                                          width=1.9,
+                                                                          fill="red"))
         else:
             if not last_hexagon:
+                if connected_aspect.aspect_out.x_sline - connected_aspect.aspect_in.x_sline > 20:
+                    curve_flag = True
                 if step <= 5:  ## first half
-                    arc, start_ang, extend = self.first_half_of_arc(arcs, step, last_hexagon)
+                    arc, start_ang, extend = self.first_half_of_arc(arcs, step, last_hexagon, curve_flag)
                 else:  ## second half
-                    arc, start_ang, extend = self.second_half_of_arc(arcs, step, last_hexagon)
+                    arc, start_ang, extend = self.second_half_of_arc(arcs, step, last_hexagon, curve_flag)
+                    # ipdb.set_trace()
                 connected_aspect.active_drawns.append(self.canvas.create_arc(arc.bbox_x1,
                                                                              arc.bbox_y1,
                                                                              arc.bbox_x2,
@@ -339,15 +403,27 @@ class Recursive:
         #         self.canvas.itemconfigure(event.draw_active_func_output, text="")
 
     def moving_line(self, duration_time, connected_aspect, last_hexagon):
+        # if connected_aspect.hex_in_num == 1:
+        #     ipdb.set_trace()
         x0 = connected_aspect.aspect_out.x_sline
         y0 = connected_aspect.aspect_out.y_sline
         x1 = connected_aspect.aspect_in.x_sline
         y1 = connected_aspect.aspect_in.y_sline
+        # ipdb.set_trace()
 
         interval = (duration_time * DIC_TIME[self.speed_mode]) / 10
 
-        arcs = get_arc_properties(x0, y0, x1, y1)
+        arcs = get_arc_properties(x1, y1, x0, y0)
+        # ipdb.set_trace()
+
         self.slice_curve_loop(interval, 1, arcs, connected_aspect, last_hexagon)
+
+        """this part of the code is temporary just for husky model"""
+        # if connected_aspect.text == "repeate cycle":
+        # hexagon = self.get_hexagon(connected_aspect.hex_in_num)
+        # if hexagon.is_active:
+        #     self.reset_actives()
+        #     self.deactivate_last_hex(connected_aspect)
 
     def reset_actives(self):
         self.logger.info("### resetting active events text")
@@ -373,8 +449,12 @@ class Recursive:
                 if connected_aspect.active_drawns:
                     for active_drawn in connected_aspect.active_drawns:
                         self.canvas.delete(active_drawn)
+        # if hexagon_in.is_active:
+        #     self.reset_actives()
+        #     self.deactivate_last_hex(hexagon_in.connected_aspects)
 
     def activator(self, event, hexagon, duration_time, connected_aspect):
+
         ## activating hexagon, input aspect and output aspect
         if not hexagon.is_active:
             self.canvas.itemconfigure(hexagon.drawn, fill="tomato")
@@ -394,18 +474,23 @@ class Recursive:
             pass
 
         elif hexagon.is_end:
-            x0 = connected_aspect.aspect_out.x_sline
-            y0 = connected_aspect.aspect_out.y_sline
-            x1 = connected_aspect.aspect_in.x_sline
-            y1 = connected_aspect.aspect_in.y_sline
+            # x0 = connected_aspect.aspect_out.x_sline
+            # y0 = connected_aspect.aspect_out.y_sline
+            # x1 = connected_aspect.aspect_in.x_sline
+            # y1 = connected_aspect.aspect_in.y_sline
             bbox = self.check_which_hexagon(connected_aspect)
-            x_elips = (x0 + x1) / 2
-            y_elips = (0.85 * (bbox[1] - y0)) + y0
+            # x_elips = (x0 + x1) / 2
+            # y_elips = (0.85 * (bbox[1] - y0)) + y0
+
+            # the coordinates portion which should add to coordinates of output aspect for the last hexagon for puting the text
+            X_portion = (hexagon.hex_aspects.outputs.x_sline - hexagon.hex_aspects.inputs.x_sline) / 2
+            Y_portion = (hexagon.hex_aspects.resources.y_sline - hexagon.hex_aspects.controls.y_sline)
             if connected_aspect.drawn_text:
                 self.canvas.delete(connected_aspect.drawn_text)
+
             connected_aspect.drawn_text = self.canvas.create_text(
-                x_elips,
-                y_elips,
+                hexagon.hex_aspects.outputs.x_sline - X_portion,
+                hexagon.hex_aspects.outputs.y_sline + Y_portion,
                 anchor="center",
                 text=connected_aspect.text,
                 font=("Helvetica", 10),

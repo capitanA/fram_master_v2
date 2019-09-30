@@ -20,23 +20,32 @@ DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 def lcurve(canvas, x1, y1, x2, y2, linear=False):
     """
-    Make curved lines from A to B at one drawing, used for the case of linear playing
-    :param x1: A's horizontal coordinate
-    :param y1: A's vertical coordinate
-    :param x2: B's horizontal coordinate
-    :param y2: B's vertical coordinate
+    getting the properties of the curves(straight line or Curve)
+    x1:X_out
+    Y1:Y_out
+    Y2:X_in
+    Y2:Y_in
     """
     # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
     #                                 - object.aspect_in.x_sline), 4 * 40)
 
     if not linear:
         res = []
-        if abs(x2 - x1) < 20 or abs(y2 - y1) < 20:  # when the curve cannot be drawn so a straght line will be drawn
+        # if abs(x2 - x1) < 20 or abs(y2 - y1) < 20:  # when the curve cannot be drawn so a straght line will be drawn
+        #
+        #     res.append(canvas.create_line(x2, y2, x1, y1))
+        #
+        #     return res
+        # else:
+        arcs = get_arc_properties(x1, y1, x2, y2)
 
-            res.append(canvas.create_line(x1, y1, x2, y2))
+        if len(arcs) == 1:
+            # it means that it is a starght line so the properties of arcs (bbox_x1,bbox_x2 etc)
+            # are the coordinates of start point and end point of the line
+            res.append(canvas.create_line(arcs[0].bbox_x1, arcs[0].bbox_y1, arcs[0].bbox_x2, arcs[0].bbox_y2))
+            # ipdb.set_trace()
             return res
         else:
-            arcs = get_arc_properties(x1, y1, x2, y2)
 
             for arc in arcs:
                 # res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
@@ -45,7 +54,7 @@ def lcurve(canvas, x1, y1, x2, y2, linear=False):
                 t = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
                                       style=tk.ARC)
-                canvas.tag_raise(t)
+                canvas.tag_lower(t)
                 res.append(t)
 
             return res
@@ -67,83 +76,99 @@ def lcurve(canvas, x1, y1, x2, y2, linear=False):
                 r = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
                                       style=tk.ARC)
-                canvas.tag_raise(r)
+                canvas.tag_lower(r)
                 res.append(r)
             return res
 
 
+# def get_arc_properties(x1, y1, x2, y2):
+#     arcs = []
+#     # in this line check if the input and output are in a specific interval so that the staright line will be drawn
+#     if (y1 <= (y2 + 10) and y2 <= (y1 + 10)) or (x1 <= (x2 + 10) and x2 <= (x1 + 10)):
+#         return [Arc(x1, y1, x2, y2, 0, 180)]
+#
+#     if x1 < x2:
+#         mid_x = (x1 + x2) / 2
+#         mid_y = (y1 + y2) / 2
+#         if y1 > mid_y:  # the curv should go upway
+#             if x1 > mid_x:  # it means that the aspect_in is ahead of aspect_out (it never come in this line)
+#                 bbox_x1 = mid_x
+#                 bbox_y1 = mid_y - (y1 - mid_y)
+#                 bbox_x2 = x1 + (x1 - mid_x)
+#                 bbox_y2 = y1
+#                 start_ang = 180
+#             else:  # it means that the aspect_out is ahead of aspect_in
+#                 bbox_x1 = x1 - (mid_x - x1)
+#                 bbox_y1 = mid_y - (y1 - mid_y)
+#                 bbox_x2 = mid_x
+#                 bbox_y2 = y1
+#                 start_ang = 270
+#         else:  # the curve should go downway
+#             if x1 > mid_x:
+#                 bbox_x1 = mid_x
+#                 bbox_y1 = mid_y - (mid_y - y1)
+#                 bbox_x2 = x1 + (x1 - mid_x)
+#                 bbox_y2 = mid_y + (mid_y - y1)
+#                 start_ang = 90
+#             else:
+#                 bbox_x1 = x1 - (mid_x - x1)
+#                 bbox_y1 = y1
+#                 bbox_x2 = mid_x
+#                 bbox_y2 = mid_y + (mid_y - y1)
+#                 start_ang = 0
+#
+#         arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
+#
+#         if y2 > mid_y:
+#             if x2 > mid_x:
+#                 bbox_x1 = mid_x
+#                 bbox_y1 = mid_y - (y2 - mid_y)
+#                 bbox_x2 = x2 + (x2 - mid_x)
+#                 bbox_y2 = y2
+#                 start_ang = 180
+#             else:
+#                 bbox_x1 = x2 - (mid_x - x1)
+#                 bbox_y1 = mid_y - (y2 - mid_y)
+#                 bbox_x2 = mid_x
+#                 bbox_y2 = y2
+#                 start_ang = 270
+#         else:
+#             if x2 > mid_x:
+#                 bbox_x1 = mid_x
+#                 bbox_y1 = mid_y - (mid_y - y2)
+#                 bbox_x2 = x2 + (x2 - mid_x)
+#                 bbox_y2 = mid_y + (mid_y - y2)
+#                 start_ang = 90
+#             else:
+#                 bbox_x1 = x2 - (mid_x - x2)
+#                 bbox_y1 = y2
+#                 bbox_x2 = mid_x
+#                 bbox_y2 = mid_y + (mid_y - y2)
+#                 start_ang = 0
+#
+#         arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
+#
+#     else:
+#         arcs = get_arc_properties(x2, y2, x1, y1)
+#
+#     return arcs
 def get_arc_properties(x1, y1, x2, y2):
     arcs = []
     # in this line check if the input and output are in a specific interval so that the staright line will be drawn
-    if (y1 <= (y2 + 10) and y2 <= (y1 + 10)) or (x1 <= (x2 + 10) and x2 <= (x1 + 10)):
-        return [Arc(x1, y1, x2, y2, 0, 180)]
 
-    # if x1 > x2:
-    #     mid_x = (x1 + x2) / 2
-    #     mid_y = (y1 + y2) / 2
-    #     if y1 < mid_y:  # the curv should go upway
-    #         if x1 > mid_x:  # it means that the aspect_in is ahead of aspect_out (it never come in this line)
-    #             bbox_x1 = mid_x
-    #             # bbox_y1 = mid_y - (y1 - mid_y)
-    #             bbox_y1 = y1
-    #             # bbox_x2 = x1 + (x1 - mid_x)
-    #             bbox_x2 = (2 * x1) - mid_x
-    #             bbox_y2 = y2
-    #             start_ang = 180
-    #         else:  # it means that the aspect_out is ahead of aspect_in
-    #             bbox_x1 = x1 - (mid_x - x1)
-    #             bbox_y1 = mid_y - (y1 - mid_y)
-    #             bbox_x2 = mid_x
-    #             bbox_y2 = y1
-    #             start_ang = 270
-    #     else:  # the curv should go downway
-    #         if x1 > mid_x:
-    #             bbox_x1 = mid_x
-    #             bbox_y1 = y2
-    #             bbox_x2 = x1 + (x1 - mid_x)
-    #             bbox_y2 = mid_y + (mid_y - y1)
-    #             start_ang = 90
-    #         else:
-    #             bbox_x1 = x1 - (mid_x - x1)
-    #             bbox_y1 = y1
-    #             bbox_x2 = (x1-mid_x)+x1
-    #             bbox_y2 = y1
-    #             start_ang = 0
-    #
-    #     arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
-    #
-    #     if y2 > mid_y:
-    #         if x2 > mid_x:
-    #             bbox_x1 = mid_x
-    #             bbox_y1 = mid_y - (y2 - mid_y)
-    #             bbox_x2 = x2 + (x2 - mid_x)
-    #             bbox_y2 = y2
-    #             start_ang = 180
-    #         else:
-    #             bbox_x1 = x2 - (mid_x - x1)
-    #             bbox_y1 = mid_y - (y2 - mid_y)
-    #             bbox_x2 = mid_x
-    #             bbox_y2 = y2
-    #             start_ang = 270
-    #     else:
-    #         if x2 > mid_x:
-    #             bbox_x1 = mid_x
-    #             bbox_y1 = mid_y - (mid_y - y2)
-    #             bbox_x2 = x2 + (x2 - mid_x)
-    #             bbox_y2 = mid_y + (mid_y - y2)
-    #             start_ang = 90
-    #         else:
-    #             bbox_x1 = x2 - (mid_x - x2)
-    #             bbox_y1 = y2
-    #             bbox_x2 = mid_x
-    #             bbox_y2 = mid_y + (mid_y - y2)
-    #             start_ang = 0
-    #
-    #     arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
+    # if (y1 <= (y2 + 10) and y2 <= (y1 + 10)) or (x1 <= (x2 + 10) and x2 <= (x1 + 10)):
+    #     return [Arc(x1, y1, x2, y2, 0, 180)]
+    # ipdb.set_trace()
+    # if (y1 <= (y2 + 20) and y2 <= (y1 + 20)) or (x1 <= (x2 + 20) and x2 <= (x1 + 20)):
+    # ipdb.set_trace()
+    if abs(x2 - x1) < 20 or abs(y2 - y1) < 20:
+        return [Arc(x1, y1, x2, y2)]
 
-    if x1 < x2:
+    elif x1 >= x2:
+        x1, y1, x2, y2 = inverse_points(x1, y1, x2, y2)
         mid_x = (x1 + x2) / 2
         mid_y = (y1 + y2) / 2
+
         if y1 > mid_y:  # the curv should go upway
             if x1 > mid_x:  # it means that the aspect_in is ahead of aspect_out (it never come in this line)
                 bbox_x1 = mid_x
@@ -203,9 +228,45 @@ def get_arc_properties(x1, y1, x2, y2):
         arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
 
     else:
-        arcs = get_arc_properties(x2, y2, x1, y1)
+        x1, y1, x2, y2 = inverse_points(x1, y1, x2, y2)
+        mid_x = (x1 + x2) / 2
+        mid_y = (y1 + y2) / 2
+
+        if y1 > mid_y:  # the curv should go upway
+            bbox_x1 = x2
+            bbox_y1 = mid_y
+            bbox_x2 = x1
+            bbox_y2 = y1 + (y1 - mid_y)
+            start_ang = 0
+        else:
+            bbox_x1 = x2
+            bbox_y1 = y1 - (mid_y - y1)
+            bbox_x2 = x1
+            bbox_y2 = mid_y
+            start_ang = 270
+
+        arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
+
+        if y2 > mid_y:
+            bbox_x1 = x2
+            bbox_y1 = mid_y
+            bbox_x2 = x1
+            bbox_y2 = y2 + (y2 - mid_y)
+            start_ang = 90
+        else:
+            bbox_x1 = x2
+            bbox_y1 = y2 - (mid_y - y2)
+            bbox_x2 = x1
+            bbox_y2 = mid_y
+            start_ang = 180
+
+        arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
 
     return arcs
+
+
+def inverse_points(x1, y1, x2, y2):
+    return x2, y2, x1, y1
 
 
 def take_o_name(aspect_in):

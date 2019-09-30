@@ -148,7 +148,7 @@ class AspectConnector:
 
 
 class Arc:
-    def __init__(self, bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, extend):
+    def __init__(self, bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang=None, extend=None):
         self.bbox_x1 = bbox_x1
         self.bbox_y1 = bbox_y1
         self.bbox_x2 = bbox_x2
