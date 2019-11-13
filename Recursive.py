@@ -16,11 +16,19 @@ import threading
 import sched, time
 import ipdb
 import datetime
+import pyautogui
 
 import time
 from datetime import timedelta
 
-DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
+###
+from PIL import ImageGrab
+# import pyscreenshot as ImageGrab
+from PIL import Image, ImageTk
+import cv2
+import numpy as np
+
+# DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 Dic_color = {"Red": "tomato", "Blue": "blue", "Green": "springgreen"}
 
 
@@ -68,12 +76,28 @@ class Recursive:
         self.file_name = None
         self.recursive_funcs = set(hexagon.id for hexagon in self.hexagons if hexagon.is_end)
         self.p_x = 0
+        ######
+        # self.canvas.bind("<MouseWheel>", self.zooming_tile)
+
+        # self.canvas.bind("<Motion>", self.zoom_move)
+        self.img = None
+        self.zimg = None
+        self.zimg_id = None
+        # root2 = tk.Tk()
+        # self.canvas2 = tk.Canvas(master=root, width=300,
+        #                          height=300)
+        self.current_hex = None
+        self.current_arcs = None
 
     def set_video(self, timer):
+
+        # self.root2.geometry("300x300")
+
         """creating the file and directory for video"""
         self.file_name = filedialog.asksaveasfilename(confirmoverwrite=False)
         truncated_width = self.canvas.winfo_width() - (self.window_width * 0.75)
         truncated_height = self.canvas.winfo_height() - (self.window_height * 0.75)
+
         # self.canvas.create_text(truncated_width,truncated_height , anchor="center",
         #                         text="truncated",
         #                         font=("Helvetica", 9),
@@ -85,9 +109,9 @@ class Recursive:
         #                         width=100
         #                         )
         if self.file_name.split("/")[-1]:
-            x = self.canvas.winfo_width() / 2
-            y = self.canvas.winfo_height() - 100
-            self.clock.place(x=x, y=y)
+            # x = self.canvas.winfo_width() / 2
+            # y = self.canvas.winfo_height() - 100
+            # self.clock.place(x=x, y=y)
             cwd = os.getcwd()
             directory = os.path.join(cwd, "Videos")
             if not os.path.exists(directory):
@@ -104,18 +128,18 @@ class Recursive:
             # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
             #                            ((int(self.window_width * 0.75)),
             #                             (int(self.window_height * 0.75))))
-            #
+
             # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
             #                            ((int(self.canvas.winfo_width())),
             #                             (int(self.canvas.winfo_height()))))
 
-            self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-                                       ((int(self.window_width * 2) ),
-                                        (int(self.window_height * 2) )))
-
             # self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
-            #                            (self.window_width * 0.75,
-            #                             self.window_height * 0.75))
+            #                            ((int(self.window_width)),
+            #                             (int(self.window_height))))
+
+            self.vid = cv2.VideoWriter(directory_new, fourcc, 5,
+                                       (1440,
+                                        900))
 
             # print(f"this is height{self.canvas.winfo_reqheight()}")
             # ipdb.set_trace()
@@ -125,25 +149,128 @@ class Recursive:
             # loop_video = threading.Thread(target=self.loop_video, args=(timer,))
             loop_video = threading.Thread(target=self.loop_video, args=(truncated_width, truncated_height,))
             loop_video.start()
-            # ipdb.set_trace()
 
     def loop_video(self, *argv):
-        print(argv[0])
-        print(argv[1])
+
+        portionx = 0
+        portiony = 0
+        counter = 0
+
         while True:
 
-            # if timer.current_time != self.max_time and not self.stop:
-            # img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_width))
+            padx = argv[0]
+            PADX = padx / self.window_width
+            OffsetX = PADX * 2880
 
-            # img = ImageGrab.grab(bbox=(argv[0], argv[1], self.window_width, self.window_height))
-            img = ImageGrab.grab(bbox=(0, 0, self.window_width * 2, self.window_height * 2))
-            frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
-            self.vid.write(frame)
-            # self.timer.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
-            if self.timer.current_time == self.max_time or self.stop:
-                print("End of recording")
-                self.vid.release()
-                break
+            pady = argv[1]
+            PADY = pady / self.window_height
+            OffsetY = PADY * 1800
+            if self.current_hex:
+
+                if not len(self.current_arc) == 1:
+
+                    if counter > 10:
+                        counter = 1
+                    x1_curve = self.current_arc[0].bbox_x1
+                    y1_curve = self.current_arc[0].bbox_y1
+                    x2_curve = self.current_arc[1].bbox_x2
+                    y2_curve = self.current_arc[1].bbox_y2
+
+                    pointx1_per = x1_curve + padx / self.window_width
+                    pointy1_per = y1_curve + pady / self.window_height
+                    pointx2_per = x2_curve + padx / self.window_width
+                    pointy2_per = y2_curve + pady / self.window_height
+
+                    pointx1 = pointx1_per * 2880
+                    pointy1 = pointy1_per * 1800
+                    pointx2 = pointx2_per * 2880
+                    pointy2 = pointy2_per * 1800
+
+                    length_x = pointx2 - pointx1
+                    length_y = pointy2 - pointy1
+
+                    portiony = length_x / 10
+                    portionx = length_y / 10
+                else:
+                    if counter > 10:
+                        counter == 1
+                    x1_curve = self.current_arc[0].bbox_x1
+                    y1_curve = self.current_arc[0].bbox_y1
+                    x2_curve = self.current_arc[0].bbox_x2
+                    y2_curve = self.current_arc[0].bbox_y2
+
+                    pointx1_per = x1_curve + padx / self.window_width
+                    pointy1_per = y1_curve + pady / self.window_height
+                    pointx2_per = x2_curve + padx / self.window_width
+                    pointy2_per = y2_curve + pady / self.window_height
+
+                    pointx1 = pointx1_per * 2880
+                    # print(pointx1)
+                    pointy1 = pointy1_per * 1800
+                    # print(pointy1)
+                    pointx2 = pointx2_per * 2880
+                    # print(pointx2)
+                    pointy2 = pointy2_per * 1800
+                    # print(pointx2)
+
+                    length_x = pointx2 - pointx1
+                    length_y = pointy2 - pointy1
+
+                    portiony = length_x / 10
+                    portionx = length_y / 10
+
+                # if length_y < 0:
+                #     portion_y = length_y / 10
+                # else:
+                #     portion_y = length_y / 10
+                # if length_x < 0:
+                #     portion_x = length_x / 10
+                # else:
+                #     portion_x = length_x / 10
+
+                # if timer.current_time != self.max_time and not self.stop:
+                # img = ImageGrab.grab(bbox=(187, 45, 1440, 900))
+
+                img = ImageGrab.grab()
+                frame = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+
+                #####
+
+                bbox = self.canvas.bbox(self.current_hex.drawn)
+                print(f"in bbox baraye hesagon{bbox}")
+                x1 = bbox[0]
+                y1 = bbox[1]
+                x2 = bbox[2]
+                y2 = bbox[3]
+
+                percent_x1 = x1 / self.window_width
+                X1 = percent_x1 * 2880
+                percent_y1 = y1 / self.window_height
+                Y1 = percent_y1 * 1800
+                percent_x2 = x2 / self.window_width
+                X2 = percent_x2 * 2880
+                percent_y2 = y2 / self.window_height
+                Y2 = percent_y2 * 1800
+
+                img_c = img.crop((X1 + (portionx * counter), Y1 + (portiony * counter),
+                                  X2 + (portionx * counter), Y2 + (portiony * counter)))
+                img_c = img.crop((X1, Y1, X2, Y2))
+                counter += 1
+                # img_c = img.crop((1460 + 439 - 40, 547 + 90 - 40, 1627 + 439 + 40, 693 + 90 + 40))
+                self.zimg = ImageTk.PhotoImage(img_c)
+                # img = ImageGrab.grab(bbox=(*argv[0], *argv[1], self.window_width, self.window_height))
+
+                if self.zimg_id: self.canvas.delete(self.zimg_id)
+                self.zimg_id = self.canvas.create_image(1000, 400, image=self.zimg)
+                #####
+
+                self.vid.write(frame)
+
+                # self.timer.after(int(DIC_TIME[self.speed_mode] / 5), self.loop_video, timer)
+                if self.timer.current_time == self.max_time or self.stop:
+                    print("End of recording")
+                    self.vid.release()
+                    break
 
     def check_equal_event(self, first_time):
         counter = 0
@@ -262,19 +389,15 @@ class Recursive:
         if connected_aspect.aspect_in.y_sline < 150:
             self.index = 140
             bbox = self.get_bbox_lasthexagon(connected_aspect)
-            print(self.index)
         elif 150 < connected_aspect.aspect_in.y_sline < 210:
             self.index = 105
             bbox = self.get_bbox_lasthexagon(connected_aspect)
-            print(self.index)
         elif 210 < connected_aspect.aspect_in.y_sline < 280:
             self.index = 70
             bbox = self.get_bbox_lasthexagon(connected_aspect)
-            print(self.index)
         else:
             self.index = 35
             bbox = self.get_bbox_lasthexagon(connected_aspect)
-            print(self.index)
         return bbox
 
     def draw_circle_lasthexagon(self, connected_aspect, step):
@@ -284,7 +407,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bbox[0], bbox[1], bbox[2], bbox[3], start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline="tomato"))
+                                   outline="tomato", tags="model"))
 
     def draw_halfcircle_lasthexagon(self, connected_aspect, step):
         start_ang = 270 - (36 * (step - 5))
@@ -307,7 +430,7 @@ class Recursive:
         connected_aspect.active_drawns.append(
             self.canvas.create_arc(bboxx1, bboxy1, bboxx2, bboxy2, start=start_ang, extent=extend, style=tk.ARC,
                                    width=1.5,
-                                   outline="tomato"))
+                                   outline="tomato", tags="model"))
 
     def get_hexagon(self, id):
         """getting the hexagons of model which was drawn in the canvas """
@@ -355,7 +478,7 @@ class Recursive:
                                                                           p_x,
                                                                           p_y,
                                                                           width=1.9,
-                                                                          fill="red"))
+                                                                          fill="red", tags="model"))
         else:
             if not last_hexagon:
                 if connected_aspect.aspect_out.x_sline - connected_aspect.aspect_in.x_sline > 20:
@@ -364,7 +487,6 @@ class Recursive:
                     arc, start_ang, extend = self.first_half_of_arc(arcs, step, last_hexagon, curve_flag)
                 else:  ## second half
                     arc, start_ang, extend = self.second_half_of_arc(arcs, step, last_hexagon, curve_flag)
-                    # ipdb.set_trace()
                 connected_aspect.active_drawns.append(self.canvas.create_arc(arc.bbox_x1,
                                                                              arc.bbox_y1,
                                                                              arc.bbox_x2,
@@ -373,7 +495,7 @@ class Recursive:
                                                                              extent=extend,
                                                                              style=tk.ARC,
                                                                              width=1.9,
-                                                                             outline="tomato"))
+                                                                             outline="tomato", tags="model"))
             else:
                 if step <= 5:
                     self.draw_circle_lasthexagon(connected_aspect, step)
@@ -402,19 +524,64 @@ class Recursive:
         #     for event in self.scene_events:
         #         self.canvas.itemconfigure(event.draw_active_func_output, text="")
 
-    def moving_line(self, duration_time, connected_aspect, last_hexagon):
+    def moving_line(self, hexagon, duration_time, connected_aspect, last_hexagon):
+        self.current_hex = hexagon
         # if connected_aspect.hex_in_num == 1:
         #     ipdb.set_trace()
         x0 = connected_aspect.aspect_out.x_sline
         y0 = connected_aspect.aspect_out.y_sline
         x1 = connected_aspect.aspect_in.x_sline
         y1 = connected_aspect.aspect_in.y_sline
-        # ipdb.set_trace()
 
-        interval = (duration_time * DIC_TIME[self.speed_mode]) / 10
+        # interval = (duration_time * DIC_TIME[self.speed_mode]) / 10
+        interval = (duration_time * self.speed_mode) / 10
 
         arcs = get_arc_properties(x1, y1, x0, y0)
+        self.current_arc = arcs
+
+        ######
+
+        # X1=self.canvas.winfo_rootx(x1)
+        # X2=self.canvas.winfo_rootx(x2)
+        # Y1=self.canvas.winfo_rooty(y1)
+        # Y2=self.canvas.winfo_rooty(y2)
+        # x, y = hexagon.winfo_root(), hexagon.winfo_rootx()
+
+        # x1 = hexagon.x - 150+360
+        # x2 = hexagon.x + 150+360
+        # y1 = hexagon.y - 90
+        # y2 = hexagon.y + 90
         # ipdb.set_trace()
+        # bbox = self.canvas.bbox(hexagon.drawn)
+        # ImageGrab.grab().size()
+
+        # x1 = self.root.winfo_rootx() + self.canvas.winfo_x()
+        # y1 = self.root.winfo_rooty() + self.canvas.winfo_y()
+        # x2 = x1 + self.canvas.winfo_width()
+        # y2 = y1 + self.canvas.winfo_height()
+
+        # x = self.root.winfo_rootx() + hexagon.drawn.winfo_x()
+        # y = self.root.winfo_rooty() + hexagon.drawn.winfo_y()
+        # x1 = x + hexagon.drawn.winfo_width()
+        # y1 = y + hexagon.drawn.winfo_height()
+        # ImageGrab.grab().crop((x, y, x1, y1)).save("karkon.jpg")
+        # img = ImageGrab.grab().crop((x1, y1, x2, y2))
+        # img = ImageGrab.grab().crop((187, 45, 1440, 900))
+
+        # img = ImageGrab.grab(bbox=(190, 47, 1600, 1000))
+        # img = ImageGrab.grab()
+        # frame2 = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+        # cv2.imwrite("kolesh.jpg", frame2)
+
+        # self.img = ImageGrab.grab(bbox=(bbox[0]+360, bbox[1]+30, bbox[2]+360, bbox[3]+30))
+        # frame = cv2.cvtColor(np.array(self.img), cv2.COLOR_BGR2RGB)
+        # # self.zimg = ImageTk.PhotoImage(self.img)
+        #
+        # # size = 150, 150
+        # self.zimg = ImageTk.PhotoImage(self.img)
+        # self.zimg_id = self.canvas.create_image(hexagon.x, hexagon.y, image=self.zimg)
+
+        #####
 
         self.slice_curve_loop(interval, 1, arcs, connected_aspect, last_hexagon)
 
@@ -494,7 +661,7 @@ class Recursive:
                 anchor="center",
                 text=connected_aspect.text,
                 font=("Helvetica", 10),
-                width=line_text_width)
+                width=line_text_width, tags="model")
 
         else:
             if connected_aspect.drawn_text:
@@ -505,9 +672,32 @@ class Recursive:
                 anchor="center",
                 text=connected_aspect.text,
                 font=("Helvetica", 10),
-                width=line_text_width)
+                width=line_text_width, tags="model")
 
-        self.moving_line(duration_time, connected_aspect, hexagon.is_end)
+        # zoom_thread=threading.Thread(target=self.zoom_Procedure)
+        # zoom_thread.start()
+
+        self.moving_line(hexagon, duration_time, connected_aspect, hexagon.is_end)
+
+    def zoom_Procedure(self):
+        # x1 = self.root.winfo_rootx() + self.canvas.winfo_x()
+        # y1 = self.root.winfo_rooty() + self.canvas.winfo_y()
+        # x2 = x1 + self.canvas.winfo_width()
+        # y2 = y1 + self.canvas.winfo_height()
+
+        # x = self.root.winfo_rootx() + hexagon.drawn.winfo_x()
+        # y = self.root.winfo_rooty() + hexagon.drawn.winfo_y()
+        # x1 = x + hexagon.drawn.winfo_width()
+        # y1 = y + hexagon.drawn.winfo_height()
+        # ImageGrab.grab().crop((x, y, x1, y1)).save("karkon.jpg")
+        # img = ImageGrab.grab().crop((x1, y1, x2, y2))
+        # img = ImageGrab.grab().crop((187, 45, 1440, 900))
+
+        # img = ImageGrab.grab(bbox=(190, 47, 1600, 1000))
+        # img = ImageGrab.grab()
+        # frame2 = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
+        # cv2.imwrite("kolesh.jpg", frame2)
+        pass
 
     def get_hexagon(self, id):
         for hexagon in self.hexagons:
@@ -628,6 +818,14 @@ class Recursive:
             for event in events["events"]:
                 self.activate_event(event, events["row"])
 
+            # ######
+            # self.img = ImageGrab.grab(bbox=(800, 1100, 950, 1250))
+            # frame = cv2.cvtColor(np.array(self.img), cv2.COLOR_BGR2RGB)
+            # # self.zimg = ImageTk.PhotoImage(self.img)
+            # size = 200, 200
+            # self.zimg = ImageTk.PhotoImage(self.img.resize(size))
+            # #####
+
             ## checking for existance of history events
 
         if self.history_list and current_time in history_times and current_time not in self.seen_history_events:
@@ -674,6 +872,13 @@ class Recursive:
                 self.canvas.itemconfigure(connected_aspect.drawn_text, text="")
 
     def play_recursive(self):
+        # ipdb.set_trace()
+        # if self.speed_mode in [1, 2, 4, 8,16]:
+        #     # self.speed_mode = DIC_TIME[self.speed_mode]
+        #     self.speed_mode = DIC_TIME[self.speed_mode]
+        # else:
+        #     self.speed_mode = int(self.speed_mode)
+
         if not self.hexagons:
             messagebox.showinfo("oops", "First,Upload the model")
             self.canvas.delete("all")
@@ -688,7 +893,7 @@ class Recursive:
         self.timer.start()
 
         # here the program will check for update every [interval] milliseconds
-        interval = DIC_TIME[self.speed_mode]
+        interval = self.speed_mode
         # interval = DIC_TIME[self.speed_mode]
         self.logger.info("### interval is: {}".format(interval))
 
@@ -723,11 +928,22 @@ class Recursive:
         def func_wrapper(flag):
             if not flag:
                 func(*argv)
+
+                # self.img = ImageGrab.grab(bbox=(300, 400, 400, 500))
+                # frame = cv2.cvtColor(np.array(self.img), cv2.COLOR_BGR2RGB)
+                # # self.zimg = ImageTk.PhotoImage(self.img)
+                # size = 200, 200
+                # self.zimg = ImageTk.PhotoImage(self.img.resize(size))
+
                 self.canvas.after(sec, self.set_interval, func, sec, *argv)
             else:
                 return
 
         func_wrapper(flag)
+
+    def zoom_move(self, event):
+        if self.zimg_id: self.canvas.delete(self.zimg_id)
+        self.zimg_id = self.canvas.create_image(event.x, event.y, image=self.zimg)
 
     def reset_loop(self):
         self.stop = True

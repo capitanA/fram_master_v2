@@ -2,3 +2,6 @@ numpy
 Pillow
 ipdb
 opencv-python-headless
+scipy
+
+

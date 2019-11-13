@@ -282,7 +282,7 @@ class Linear:
     def draw_line(self, hexagon):
 
         for object in hexagon.connected_aspects:
-            object.drawn = lcurve(self.canvas, object.aspect_in.x_sline,
+            object.drawn = lcurve(None,self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline, linear=True)
@@ -483,7 +483,7 @@ class Linear:
         x2 = self.hexagons[-1].hex_aspects.outputs.x_sline + 30
         self.canvas.tag_lower(self.canvas.create_line(x1, self.window_height,
                                                       x2,
-                                                      self.window_height + 8,
+                                                      self.window_height -8,
                                                       width=10,
                                                       fill="springgreen"))
 
@@ -508,7 +508,7 @@ class Linear:
 
     def draw_line_inactive_funcs(self, hexagon):
         for object in hexagon.connected_aspects:
-            object.drawn = lcurve(self.canvas, object.aspect_in.x_sline,
+            object.drawn = lcurve(None,self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline, linear=True)
@@ -787,6 +787,12 @@ class Linear:
                 for event in history_data.history_events:
                     self.history_times.add(int(event.time))
         self.set_video()
+        # ipdb.set_trace()
+        # if self.speed_mode in [1, 2, 4,8, 16]:
+        #     self.speed_mode = DIC_TIME[self.speed_mode]
+        # else:
+        #     self.speed_mode = int(self.speed_mode)
+
         self.loop_linear(directory_new=directory_new)
 
     def history_event_generator(self):
@@ -823,7 +829,7 @@ class Linear:
                             self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
             x = (100 / (self.uniq_hexagon[-1].hex_aspects.outputs.x_sline + 50)) * self.time
             self.canvas.xview_moveto(x)
-            self.canvas.after(DIC_TIME[self.speed_mode], self.loop_linear, directory_new)
+            self.canvas.after(self.speed_mode, self.loop_linear, directory_new)
 
     def reset_loop(self):
         self.stop = True

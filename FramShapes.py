@@ -26,14 +26,20 @@ class Hexagon:
 
          :param connected_aspects: the hexagon output aspect and its corresponding text and also its corresponding aspect by which it should connect(
          it is a object of AspectConnector class.
+
+         :param cycle: this property used in LINEAR mode only to understand in which cycle that specific hexagon placed.
+
     """
 
-    def __init__(self, id, name, x, y, connected_aspects, hex_aspects=None, drawn=None, drawn_text=None,
+    def __init__(self, id, name, x, y, connected_aspects, previous_hex=None, y_max=None, hex_aspects=None, drawn=None,
+                 drawn_text=None,
                  is_active=False,
                  is_end=False,
                  index=0,
                  cycle=0):
+        self.previous_hex = previous_hex
         self.name = name
+        self.y_max = y_max
         self.id = id
         self.x = x
         self.y = y

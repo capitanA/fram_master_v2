@@ -26,12 +26,14 @@ import logging
 import os
 import pdb
 from datetime import datetime
+from tkinter import simpledialog
 
 # from win32api import GetSystemMetrics
 
 
 r = 40
 history_data = None
+DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 
 class Start:
@@ -41,6 +43,7 @@ class Start:
         self.scene_event = None
         self.pre_screenshot_time = set()
         self.method = None
+        # self.speed_mode = None
 
     def history_data_upload(self, name, id):
         h_data = HistoryData(name, id, logger)
@@ -55,6 +58,7 @@ class Start:
 
     def scene_upload(self):
         events = SceneEvent()
+
         filename_scene = filedialog.askopenfilename(initialdir="/", title="Select the file for Scenario")
         if filename_scene.endswith('.csv'):
             filetype = 'csv'
@@ -64,8 +68,25 @@ class Start:
             filetype = 'xml'
             events.scene_upload(filename_scene, filetype)
         self.scene_event = events
+        # self.ask_for_speed_up()
+
         # dynaFramCanvas.update_aspect_connectors(self.scene_event.scene_events)
         logger.info("### scenario has been uploaded")
+
+    def ask_for_speed_up(self):
+
+        scenario_last_sec = self.scene_event.scene_events[-1].time_stamp
+        scenario_minuts = int(scenario_last_sec) / 60
+        answer = messagebox.askyesno("Speed up/Regular",
+                                     f"the whole scenario file would take about {scenario_minuts} minutes in real time would you like to make it faster?")
+        if answer:
+            asked_speed_in_min = simpledialog.askstring(
+                f"how long you want the visualization takes?(put a number between 1 and {scenario_minuts}, 1==1 minute)",
+                root)
+            new_speed = (int(asked_speed_in_min) * 60 * 1000) / int(scenario_last_sec)
+            self.speed_mode = new_speed
+        else:
+            self.speed_mode = speed_mode.get()
 
     def history_upload(self, event):
         try:
@@ -79,6 +100,13 @@ class Start:
         if messagebox.askokcancel("Quit", "You want to quit now?"):
             root.destroy()
 
+    def calculate_speed(self):
+        if self.speed_mode in [1, 2, 4, 8, 16]:
+            # self.speed_mode = DIC_TIME[self.speed_mode]
+            self.speed_mode = DIC_TIME[self.speed_mode]
+        else:
+            self.speed_mode = int(self.speed_mode)
+
     def play(self):
         if not dynaFramCanvas.hexagons:
             messagebox.showinfo("oops", "upload the model first")
@@ -88,12 +116,24 @@ class Start:
             return
 
         if var.get() == "C":
+            self.ask_for_speed_up()
+            self.calculate_speed()
             self.play_recursive()
         elif var.get() == "L":
+            self.ask_for_speed_up()
+            self.calculate_speed()
             self.play_linear_dynamic(dynamic_flag=True)
         else:
             self.play_linear_dynamic(dynamic_flag=False)
             # play_linear_static()
+
+    def check_speed_object(self):
+        ipdb.set_trace()
+        if self.speed_mode in [1, 2, 4, 8, 16]:
+            Speed = self.speed_mode
+        else:
+            Speed = self.speed_mode
+        return Speed
 
     def play_recursive(self):
         if not self.scene_event:
@@ -104,25 +144,29 @@ class Start:
         # f_choice_number = self.history_event.f_choice_id
 
         if self.history_list:
-            # pdb.set_trace()
+
+            # speed = self.check_speed_object
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
                                     scene_events=self.scene_event.scene_events,
                                     history_list=self.history_list,
                                     canvas=dynaFramCanvas.canvas,
-                                    speed_mode=self.speed_mode.get(), clock=CLOCK, window_width=window_width,
+                                    speed_mode=self.speed_mode, clock=CLOCK, window_width=window_width,
                                     window_height=window_height,
                                     logger=logger, user_logger=user_logger, y_max=dynaFramCanvas.y_max,
                                     activation_color=0)
         else:
+            # ipdb.set_trace()
+            # speed = self.check_speed_object
             self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                     root=root,
                                     canvas=dynaFramCanvas.canvas,
                                     scene_events=self.scene_event.scene_events,
-                                    speed_mode=self.speed_mode.get(),
+                                    speed_mode=self.speed_mode,
                                     clock=CLOCK, window_width=window_width,
                                     window_height=window_height, logger=logger, user_logger=user_logger,
                                     y_max=dynaFramCanvas.y_max, activation_color=0)
+            print(f" in y_max hastesh{dynaFramCanvas.y_max}")
         self.method.play_recursive()
 
     def play_linear_dynamic(self, dynamic_flag):
@@ -131,22 +175,23 @@ class Start:
             return
 
         if self.history_list:
+            # speed = self.check_speed_object
             self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                  root=root, show_hide_flag=show_hide_flag.get(),
                                  canvas=dynaFramCanvas.canvas,
                                  scene_events=self.scene_event.scene_events,
                                  history_list=self.history_list,
-                                 speed_mode=self.speed_mode.get(),
+                                 speed_mode=self.speed_mode,
                                  clock=CLOCK, window_width=window_width,
                                  window_height=window_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
         else:
-
+            # speed = self.check_speed_object
             self.method = Linear(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
                                  root=root, show_hide_flag=show_hide_flag.get(),
                                  canvas=dynaFramCanvas.canvas,
                                  scene_events=self.scene_event.scene_events,
-                                 speed_mode=self.speed_mode.get(),
+                                 speed_mode=self.speed_mode,
                                  clock=CLOCK, window_width=window_width, canvas_width=canvas_width,
                                  window_height=window_height, logger=logger, user_logger=user_logger,
                                  dynamic_flag=dynamic_flag)
@@ -195,7 +240,6 @@ class Start:
                 self.pre_screenshot_time.add(int(row[0]))
 
     def clear_window(self):
-        # if self.scene_event:
         self.history_event = None
         self.scene_event = None
         popup.delete(0, len(dynaFramCanvas.hexagons) - 1)
@@ -221,7 +265,6 @@ class Start:
         new_x = event.x_root
         new_y = event.y_root - 50
         CLOCK.place(x=new_x, y=new_y)
-        # dynaFramCanvas.canvas.move()
 
 
 if __name__ == '__main__':
@@ -236,21 +279,18 @@ if __name__ == '__main__':
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     logger.addHandler(console)
-    """creating logger for user"""
 
+    """creating logger for user"""
     user_logger = logging.getLogger("user_logger")
     user_logger.setLevel(logging.WARNING)
-
     formatter = logging.Formatter('%(asctime)s:%(message)s')
-
     handler = logging.FileHandler("user_logger.log", mode="w")
     handler.setFormatter(formatter)
-
     user_logger.addHandler(handler)
 
     ## init tkinter object
     root = tk.Tk()
-    root.title("DynaFRAM-2.0")
+    root.title("DynaFRAM-3.0")
 
     window_width = root.winfo_screenwidth()
     window_height = root.winfo_screenheight()
@@ -267,12 +307,13 @@ if __name__ == '__main__':
                                    y_coordinate))
 
     ## start FramCanvas
-    dynaFramCanvas = FramCanvas(root,window_width,window_height, canvas_width, canvas_height, logger, user_logger)
+    dynaFramCanvas = FramCanvas(root, window_width, window_height, canvas_width, canvas_height, logger, user_logger)
     dynaFramCanvas.pack(side='right', fill="both", expand=True)
     popup = tk.Menu(root, tearoff=0)
     upload_icon = tk.PhotoImage(file="./Images/upload.gif")
     start = Start()
     BUTTON_MODEL = tk.Button(root,
+                             cursor="plus",
                              compound=tk.LEFT,
                              image=upload_icon,
                              padx=15,
@@ -283,7 +324,7 @@ if __name__ == '__main__':
                              width=114,
                              command=start.model_upload,
                              anchor="w")
-    BUTTON_SCENE = tk.Button(root,
+    BUTTON_SCENE = tk.Button(root, cursor="plus",
                              compound=tk.LEFT,
                              image=upload_icon,
                              padx=15,
@@ -297,7 +338,7 @@ if __name__ == '__main__':
     # BUTTON_MODEL.pack()
     # BUTTON_SCENE.pack()
 
-    BUTTON_HISTORY = tk.Button(root,
+    BUTTON_HISTORY = tk.Button(root, cursor="plus",
                                compound=tk.LEFT,
                                image=upload_icon,
                                padx=15,
@@ -333,7 +374,7 @@ if __name__ == '__main__':
                              command=start.clear_window,
                              anchor="w")
     pre_screenshot_icon = tk.PhotoImage(file="./Images/pre_screenshot.png")
-    BUTTON_SCREENSHOT = tk.Button(root,
+    BUTTON_SCREENSHOT = tk.Button(root, cursor="plus",
                                   compound=tk.LEFT,
                                   image=pre_screenshot_icon,
                                   padx=15,
@@ -422,7 +463,7 @@ if __name__ == '__main__':
         b = tk.Radiobutton(root, text=text,
                            variable=speed_mode, value=mode)
         b.pack(side='top', anchor="w")
-    start.speed_mode = speed_mode
+    start.speed_mode = speed_mode.get()
 
     CLOCK = tk.Label(root,
                      height=2,
@@ -440,7 +481,8 @@ if __name__ == '__main__':
     # set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
     # set_color.pack(side='top', anchor="w")
 
-    CLOCK.bind('<B1-Motion>', start.changclock)
+
+
+    # CLOCK.bind('<B1-Motion>', start.changclock)
     CLOCK.pack(side='top', anchor="w")
-    # root.protocol("WM_DELETE_WINDOW", start.ask_quit)
     root.mainloop()

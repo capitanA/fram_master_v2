@@ -18,7 +18,7 @@ import ipdb
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 
-def lcurve(canvas, x1, y1, x2, y2, linear=False):
+def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
     """
     getting the properties of the curves(straight line or Curve)
     x1:X_out
@@ -42,7 +42,8 @@ def lcurve(canvas, x1, y1, x2, y2, linear=False):
         if len(arcs) == 1:
             # it means that it is a starght line so the properties of arcs (bbox_x1,bbox_x2 etc)
             # are the coordinates of start point and end point of the line
-            res.append(canvas.create_line(arcs[0].bbox_x1, arcs[0].bbox_y1, arcs[0].bbox_x2, arcs[0].bbox_y2))
+            res.append(canvas.create_line(arcs[0].bbox_x1, arcs[0].bbox_y1, arcs[0].bbox_x2, arcs[0].bbox_y2,
+                                          tags=("model", f"hex_line{id}")))
             # ipdb.set_trace()
             return res
         else:
@@ -53,7 +54,7 @@ def lcurve(canvas, x1, y1, x2, y2, linear=False):
                 #                              style=tk.ARC))
                 t = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
-                                      style=tk.ARC)
+                                      style=tk.ARC, tags=("model", f"hex_line{id}"))
                 canvas.tag_lower(t)
                 res.append(t)
 
@@ -75,7 +76,7 @@ def lcurve(canvas, x1, y1, x2, y2, linear=False):
 
                 r = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
-                                      style=tk.ARC)
+                                      style=tk.ARC, tags=("model", f"hex_line{id}"))
                 canvas.tag_lower(r)
                 res.append(r)
             return res
@@ -354,7 +355,8 @@ class MyThread(threading.Thread):
         self.label['text'] = f"TIME:{str(self.current_time)}s" if self.current_time > -1 else 0
         # self.start_time = start_time
         if self.current_time < self.last_time:
-            self.label.after(DIC_TIME[self.speed_mode], self.start_counter)
+            # self.label.after(DIC_TIME[self.speed_mode], self.start_counter)
+            self.label.after(self.speed_mode, self.start_counter)
         else:
             self.stop()
 
