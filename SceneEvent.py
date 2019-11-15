@@ -82,7 +82,6 @@ class SceneEvent:
         elif filetype == "xml":
             self.XML_ipload(filename)
 
-
         return self.scene_events
 
     def reset(self):

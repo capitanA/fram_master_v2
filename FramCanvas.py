@@ -76,6 +76,9 @@ class FramCanvas(tk.Frame):
         ##### for moving hexagons
         self.tag_dic = list()
         self.flag = True
+        #### for saving the model new coordinates
+        self.xml_root = None
+        self.xfmv_path = None
 
     def zoomert(self, event):
         x = self.canvas.canvasx(self.window_width)
@@ -136,7 +139,10 @@ class FramCanvas(tk.Frame):
             x2 = self.canvas.canvasx(event.x)
             y2 = self.canvas.canvasy(event.y)
             self.canvas.move(current_tag, x2 - x1, y2 - y1)
-            self.coord_update_hexagon()
+            self.coord_update_hexagon(current_tag, True)
+
+            # s = self.xml_root[0][int(current_tag)].attrib["x"]
+            # d = self.xml_root[0][int(current_tag)].attrib["y"]
 
             # splited_str = current_tag.split("_")  # charcter  afater "_" would be the Id for that hexagon
             # Id = splited_str[1]
@@ -196,12 +202,12 @@ class FramCanvas(tk.Frame):
     def move_start(self, event):
         self.canvas.scan_mark(event.x, event.y)
         self.canvas.focus_set()
-        self.coord_update_hexagon()
+        self.coord_update_hexagon(None, False)
 
     def move_move(self, event):
         """for moving the canvas in order to move model"""
         self.canvas.scan_dragto(event.x, event.y, gain=1)
-        self.coord_update_hexagon()
+        # self.coord_update_hexagon()
 
         """ for moving the model itself in the canvas"""
         # bboxx1, bboxy1, bboxx2, bboxy2 = self.canvas.bbox("model")
@@ -241,10 +247,10 @@ class FramCanvas(tk.Frame):
             self.canvas.scale("all", true_x, true_y, 0.97, 0.97)
         self.zoom_output_text(event.delta)
         self.zoom_hexagons_text()
-        self.coord_update_hexagon()
+        self.coord_update_hexagon(None, False)
         self.zoom_aspect_circles_text()
 
-    def coord_update_hexagon(self):
+    def coord_update_hexagon(self, current_tag, update_XFMV):
         """
         Update the coordinates of the hexagon objects on the canvas, activated whenever the objects
         are moved
@@ -257,10 +263,22 @@ class FramCanvas(tk.Frame):
             # hex_XY=[]
 
             for hexagon in self.hexagons:
-                h_coords.append(self.canvas.coords(hexagon.drawn))
+                # h_coords.append(self.canvas.coords(hexagon.drawn))
+
+                pass
+
+                # if update_XFMV and hexagon.id == int(current_tag.split("_")[1]):
+                #     pass
+                    # self.xml_root[0][int(current_tag.split("_")[1])].attrib["x"]
+                    # print(hexagon.hex_aspects.outputs.x_c)
+                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
+                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
+                    # # self.xml_root.write(self.xfmv_path.split("/")[-1])
+                    # self.xml_root.write("Navigation.xfmv")
+                    # self.xml_root[0][int(current_tag.split("_")[1])].attrib["y"] = hexagon.y
 
             for i, h in enumerate(self.hexagons):
-
+                h_coords.append(self.canvas.coords(h.drawn))
                 for attr, value in h.hex_aspects.__dict__.items():  # loop over [O, C, T, I, P, R]
                     if attr == "resources":
                         # if value.y_oright > self.y_max:
@@ -289,6 +307,12 @@ class FramCanvas(tk.Frame):
                     elif value.o_name == "R":
                         h.hex_aspects.resources.x_sline = h_coords[i][10] + 40 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.y_sline = h_coords[i][11] + 40 * math.sin(slice["R"] * sweep) / 6
+                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
+                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
+                    # # self.xml_root.write(self.xfmv_path.split("/")[-1])
+                    # self.xml_root.write("Navigation.xfmv")
+                    if h.id == 0:
+                        print(h.hex_aspects.outputs.x_sline)
 
     def zoom_aspect_circles_text(self):
         """
@@ -595,10 +619,13 @@ class FramCanvas(tk.Frame):
 
     def model_upload(self, root, r, flag_func_NO=False):
         root.filename = filedialog.askopenfilename(initialdir="/", title="Select file")
-        xml_root = ET.parse(root.filename).getroot()
-        for function in xml_root.iter("Function"):
+        self.xfmv_path = root.filename
+        self.xml_root = ET.parse(root.filename)
+        xml_root = self.xml_root.getroot()
+        for function in self.xml_root.iter("Function"):
             for element in function:
                 if element.tag == "IDNr":
+
                     func_number = int(element.text)
                 elif element.tag == "IDName":
                     func_name = element.text
@@ -624,9 +651,8 @@ class FramCanvas(tk.Frame):
             self.hexagons.append(hexagon)
 
         for hexagon in self.hexagons:
-            self.add_connectors(xml_root, hexagon)
+            self.add_connectors(self.xml_root, hexagon)
         self.draw_model(r=40)
-
         self.logger.info('### model has been uploaded')
 
     def reset_canvas(self):
