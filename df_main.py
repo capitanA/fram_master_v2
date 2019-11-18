@@ -127,13 +127,8 @@ class Start:
             self.play_linear_dynamic(dynamic_flag=False)
             # play_linear_static()
 
-    def check_speed_object(self):
-        ipdb.set_trace()
-        if self.speed_mode in [1, 2, 4, 8, 16]:
-            Speed = self.speed_mode
-        else:
-            Speed = self.speed_mode
-        return Speed
+    def save_model(self):
+        dynaFramCanvas.save_current_model()
 
     def play_recursive(self):
         if not self.scene_event:
@@ -397,6 +392,18 @@ if __name__ == '__main__':
                                width=114,
                                command=start.screen_capture,
                                anchor="w")
+    save_model_icon = tk.PhotoImage(file="./Images/save_model.png")
+    save_model = tk.Button(root,
+                           compound=tk.LEFT,
+                           image=save_model_icon,
+                           padx=15,
+                           text="  Save Current Model  ",
+                           font=("Helvetica", 10),
+                           fg="black",
+                           height=38,
+                           width=114,
+                           command=start.save_model,
+                           anchor="w")
 
     BUTTON_MODEL.pack(side='top', anchor="w")
     BUTTON_SCENE.pack(side='top', anchor="w")
@@ -405,6 +412,7 @@ if __name__ == '__main__':
     BUTTON_RESET.pack(side="top", anchor="w")
     BUTTON_SCREENSHOT.pack(side="top", anchor="w")
     BUTTON_CAPTURE.pack(side="top", anchor="w")
+    save_model.pack(side="top", anchor="w")
 
     MODES_LABEL = tk.Label(root,
                            text="Play mode",
@@ -480,8 +488,6 @@ if __name__ == '__main__':
     # color_var.set("set Color")
     # set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
     # set_color.pack(side='top', anchor="w")
-
-
 
     # CLOCK.bind('<B1-Motion>', start.changclock)
     CLOCK.pack(side='top', anchor="w")

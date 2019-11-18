@@ -262,20 +262,20 @@ class FramCanvas(tk.Frame):
             h_coords = []
             # hex_XY=[]
 
-            for hexagon in self.hexagons:
-                # h_coords.append(self.canvas.coords(hexagon.drawn))
+            # for hexagon in self.hexagons:
+            # h_coords.append(self.canvas.coords(hexagon.drawn))
 
-                pass
+            # pass
 
-                # if update_XFMV and hexagon.id == int(current_tag.split("_")[1]):
-                #     pass
-                    # self.xml_root[0][int(current_tag.split("_")[1])].attrib["x"]
-                    # print(hexagon.hex_aspects.outputs.x_c)
-                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
-                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
-                    # # self.xml_root.write(self.xfmv_path.split("/")[-1])
-                    # self.xml_root.write("Navigation.xfmv")
-                    # self.xml_root[0][int(current_tag.split("_")[1])].attrib["y"] = hexagon.y
+            # if update_XFMV and hexagon.id == int(current_tag.split("_")[1]):
+            #     pass
+            # self.xml_root[0][int(current_tag.split("_")[1])].attrib["x"]
+            # print(hexagon.hex_aspects.outputs.x_c)
+            # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
+            # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
+            # # self.xml_root.write(self.xfmv_path.split("/")[-1])
+            # self.xml_root.write("Navigation.xfmv")
+            # self.xml_root[0][int(current_tag.split("_")[1])].attrib["y"] = hexagon.y
 
             for i, h in enumerate(self.hexagons):
                 h_coords.append(self.canvas.coords(h.drawn))
@@ -307,12 +307,19 @@ class FramCanvas(tk.Frame):
                     elif value.o_name == "R":
                         h.hex_aspects.resources.x_sline = h_coords[i][10] + 40 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.y_sline = h_coords[i][11] + 40 * math.sin(slice["R"] * sweep) / 6
-                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
-                    # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
-                    # # self.xml_root.write(self.xfmv_path.split("/")[-1])
-                    # self.xml_root.write("Navigation.xfmv")
-                    if h.id == 0:
-                        print(h.hex_aspects.outputs.x_sline)
+                    h.x = (h.hex_aspects.outputs.x_sline + h.hex_aspects.inputs.x_sline) / 2
+                    h.y = (h.hex_aspects.outputs.y_sline + h.hex_aspects.inputs.y_sline) / 2
+
+                # if update_XFMV and h.id == int(current_tag.split("_")[1]):
+                #     self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", str(h.x - 250))
+                #     self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", str(h.y - 150))
+                #     self.xml_root.write(self.xfmv_path)
+
+    def save_current_model(self):
+        for index, hex in enumerate(self.hexagons):
+            self.xml_root.getroot()[0][index].set("x", str(hex.x - 250))
+            self.xml_root.getroot()[0][index].set("y", str(hex.y - 150))
+            self.xml_root.write(self.xfmv_path)
 
     def zoom_aspect_circles_text(self):
         """
