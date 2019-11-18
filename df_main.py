@@ -305,15 +305,15 @@ if __name__ == '__main__':
     dynaFramCanvas = FramCanvas(root, window_width, window_height, canvas_width, canvas_height, logger, user_logger)
     dynaFramCanvas.pack(side='right', fill="both", expand=True)
     popup = tk.Menu(root, tearoff=0)
-    upload_icon = tk.PhotoImage(file="./Images/upload.gif")
+    upload_icon = tk.PhotoImage(file="./Images/upload.png")
     start = Start()
     BUTTON_MODEL = tk.Button(root,
                              cursor="plus",
                              compound=tk.LEFT,
                              image=upload_icon,
                              padx=15,
-                             text="     Model     ",
-                             font=("Helvetica", 10),
+                             text="     Model",
+                             font=("Helvetica", 15),
                              fg="black",
                              height=38,
                              width=114,
@@ -323,8 +323,8 @@ if __name__ == '__main__':
                              compound=tk.LEFT,
                              image=upload_icon,
                              padx=15,
-                             text="   Scenario   ",
-                             font=("Helvetica", 10),
+                             text="     Scenario",
+                             font=("Helvetica", 15),
                              fg="black",
                              height=38,
                              width=114,
@@ -337,21 +337,21 @@ if __name__ == '__main__':
                                compound=tk.LEFT,
                                image=upload_icon,
                                padx=15,
-                               text=" History Data\n (Optional)",
-                               font=("Helvetica", 10),
+                               text="     History Data\n     (Optional)",
+                               font=("Helvetica", 15),
                                fg="black",
                                height=38,
                                width=114,
                                command=start.history_upload,
                                anchor="w")
     BUTTON_HISTORY.bind("<Button-1>", start.history_upload)
-    play_icon = tk.PhotoImage(file="./Images/play_icon.gif")
+    play_icon = tk.PhotoImage(file="./Images/play_icon.png")
     BUTTON_PLAY = tk.Button(root,
                             compound=tk.LEFT,
                             image=play_icon,
                             padx=15,
-                            text="     Play      ",
-                            font=("Helvetica", 10),
+                            text="        Play",
+                            font=("Helvetica", 15),
                             fg="black",
                             height=38,
                             width=114,
@@ -359,10 +359,10 @@ if __name__ == '__main__':
                             anchor="w")
     reset_icon = tk.PhotoImage(file="./Images/reset.png")
     BUTTON_RESET = tk.Button(root,
-                             text="    Reset     ", compound=tk.LEFT,
+                             text="        Reset", compound=tk.LEFT,
                              image=reset_icon,
                              padx=15,
-                             font=("Helvetica", 10),
+                             font=("Helvetica", 15),
                              fg="black",
                              height=38,
                              width=114,
@@ -371,22 +371,22 @@ if __name__ == '__main__':
     pre_screenshot_icon = tk.PhotoImage(file="./Images/pre_screenshot.png")
     BUTTON_SCREENSHOT = tk.Button(root, cursor="plus",
                                   compound=tk.LEFT,
-                                  image=pre_screenshot_icon,
+                                  image=upload_icon,
                                   padx=15,
-                                  text="  Predefined\nCapture\n(Optional) ",
-                                  font=("Helvetica", 9),
+                                  text="     Predefined\n     Capture\n     (Optional)",
+                                  font=("Helvetica", 15),
                                   fg="black",
                                   height=38,
                                   width=114,
                                   command=start.pre_screen_capture,
                                   anchor="w")
-    capture_icon = tk.PhotoImage(file="./Images/screenshot.gif")
+    capture_icon = tk.PhotoImage(file="./Images/screenshot.png")
     BUTTON_CAPTURE = tk.Button(root,
                                compound=tk.LEFT,
                                image=capture_icon,
                                padx=15,
-                               text="  Capture  ",
-                               font=("Helvetica", 10),
+                               text="     Capture     ",
+                               font=("Helvetica", 15),
                                fg="black",
                                height=38,
                                width=114,
@@ -397,29 +397,29 @@ if __name__ == '__main__':
                            compound=tk.LEFT,
                            image=save_model_icon,
                            padx=15,
-                           text="  Save Current Model  ",
-                           font=("Helvetica", 10),
+                           text="     Save\n     Current\n     Model",
+                           font=("Helvetica", 15),
                            fg="black",
                            height=38,
                            width=114,
                            command=start.save_model,
                            anchor="w")
 
-    BUTTON_MODEL.pack(side='top', anchor="w")
-    BUTTON_SCENE.pack(side='top', anchor="w")
-    BUTTON_HISTORY.pack(side='top', anchor="w")
-    BUTTON_PLAY.pack(side='top', anchor="w")
-    BUTTON_RESET.pack(side="top", anchor="w")
-    BUTTON_SCREENSHOT.pack(side="top", anchor="w")
-    BUTTON_CAPTURE.pack(side="top", anchor="w")
-    save_model.pack(side="top", anchor="w")
+    BUTTON_MODEL.pack(side='top', fill="x")
+    BUTTON_SCENE.pack(side='top', fill="x")
+    BUTTON_HISTORY.pack(side='top', fill="x")
+    BUTTON_PLAY.pack(side='top', fill="x")
+    BUTTON_RESET.pack(side="top", fill="x")
+    BUTTON_SCREENSHOT.pack(side="top",  fill="x")
+    BUTTON_CAPTURE.pack(side="top",  fill="x")
+    save_model.pack(side="top",  fill="x")
 
     MODES_LABEL = tk.Label(root,
                            text="Play mode",
                            height=2,
                            width=14,
                            fg="black",
-                           font=("Helvetica", 10),
+                           font=("Helvetica", 15),
                            anchor="sw")
     MODES_LABEL.pack(side='top', anchor="w")
     MODES = [
