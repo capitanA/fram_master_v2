@@ -7,7 +7,7 @@ __pycache__/
 .ipynb*/
 *.ipynb
 *.log
-.DS_Store
+p
 *.pyc
 *.pyo
 screenshots/*.jpg
@@ -16,3 +16,4 @@ screenshots/predefined_*/
 *.avi
 trash.py
 *test.py
+Unittest_recursive.py

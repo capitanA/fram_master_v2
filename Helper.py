@@ -275,6 +275,26 @@ def take_o_name(aspect_in):
     return dic[aspect_in]
 
 
+def edge_detector(aspect_in):
+    i = False
+    p = False
+    t = False
+    c = False
+    r = False
+
+    if aspect_in == "I":
+        i = True
+    elif aspect_in == "P":
+        p = True
+    elif aspect_in == "T":
+        t = True
+    elif aspect_in == "C":
+        c = True
+    elif aspect_in == "R":
+        r = True
+    return i, p, t, c, r
+
+
 # which connected_aspect should update,(connected_aspects is a list)
 def get_connector(event, connected_aspects):
     # pdb.set_trace()

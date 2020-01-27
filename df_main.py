@@ -63,10 +63,10 @@ class Start:
         if filename_scene.endswith('.csv'):
             filetype = 'csv'
             with open(filename_scene, newline='') as csv_file:
-                events.scene_upload(csv_file, filetype)
+                events.scene_upload(dynaFramCanvas, csv_file, filetype)
         elif filename_scene.endswith('.xml'):
             filetype = 'xml'
-            events.scene_upload(filename_scene, filetype)
+            events.scene_upload(dynaFramCanvas, filename_scene, filetype)
         self.scene_event = events
         # self.ask_for_speed_up()
 
@@ -226,7 +226,7 @@ class Start:
         cv2.imwrite(directory, frame)
 
     def pre_screen_capture(self):
-        root.filename_scene = filedialog.askopenfilename(initialdir="/", title="Select file")
+        root.filename_scene = filedialog.askopenfilename(initialdir="/", title="Select predefine Capture File")
         with open(root.filename_scene, newline='') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',', quotechar='|')
             for index, row in enumerate(csv_reader):
@@ -260,6 +260,13 @@ class Start:
         new_x = event.x_root
         new_y = event.y_root - 50
         CLOCK.place(x=new_x, y=new_y)
+
+    def remover(self, ):
+        if show_text_flag.get():
+            dynaFramCanvas.reveal_texts()
+
+        else:
+            dynaFramCanvas.remove_texts()
 
 
 if __name__ == '__main__':
@@ -410,9 +417,9 @@ if __name__ == '__main__':
     BUTTON_HISTORY.pack(side='top', fill="x")
     BUTTON_PLAY.pack(side='top', fill="x")
     BUTTON_RESET.pack(side="top", fill="x")
-    BUTTON_SCREENSHOT.pack(side="top",  fill="x")
-    BUTTON_CAPTURE.pack(side="top",  fill="x")
-    save_model.pack(side="top",  fill="x")
+    BUTTON_SCREENSHOT.pack(side="top", fill="x")
+    BUTTON_CAPTURE.pack(side="top", fill="x")
+    save_model.pack(side="top", fill="x")
 
     MODES_LABEL = tk.Label(root,
                            text="Play mode",
@@ -439,6 +446,11 @@ if __name__ == '__main__':
     tk.Checkbutton(root,
                    text="Show inactive\nfunctions",
                    variable=show_hide_flag).pack(side='top', anchor="w")
+    show_text_flag = tk.BooleanVar()
+    show_text_flag.set(True)
+    tk.Checkbutton(root,
+                   text="Show functions' text",
+                   variable=show_text_flag, command=start.remover).pack(side='top', anchor="w")
     show_func_No = tk.BooleanVar()
     show_func_No.set("True")
 
@@ -478,6 +490,7 @@ if __name__ == '__main__':
                      width=14,
                      font=("Helvetica", 10),
                      bg='tomato', relief="solid")
+
     """this is for activation color"""
     # label_color = tk.Label(root, text="activation color", height=2,
     #                        width=14,
@@ -489,6 +502,6 @@ if __name__ == '__main__':
     # set_color = tk.OptionMenu(root, color_var, "Red", "Green", "Blue")
     # set_color.pack(side='top', anchor="w")
 
-    # CLOCK.bind('<B1-Motion>', start.changclock)
+    CLOCK.bind('<B1-Motion>', start.changclock)
     CLOCK.pack(side='top', anchor="w")
     root.mainloop()

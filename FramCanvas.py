@@ -2,7 +2,7 @@ import math
 import xml.etree.ElementTree as ET
 from tkinter import filedialog
 from FramShapes import *
-from Helper import lcurve, take_o_name, get_connector
+from Helper import lcurve, take_o_name, get_connector, edge_detector
 from PIL import ImageGrab
 from PIL import Image, ImageTk
 import cv2
@@ -10,6 +10,7 @@ import numpy as np
 from tkinter import messagebox
 import ipdb
 from scipy.ndimage import zoom
+import networkx as nx
 
 r = 40
 
@@ -79,6 +80,9 @@ class FramCanvas(tk.Frame):
         #### for saving the model new coordinates
         self.xml_root = None
         self.xfmv_path = None
+
+        ###for creating the graph
+        self.G = nx.MultiGraph()
 
     def zoomert(self, event):
         x = self.canvas.canvasx(self.window_width)
@@ -521,10 +525,29 @@ class FramCanvas(tk.Frame):
                 font=("Helvetica", 7),
                 width=line_text_width, tags=("model", f"hex_line{Id}"))
 
-    # def add_hexagon(self, hexagon):
-    #     self.hexagons.append(hexagon)
+    def remove_texts(self):
+        for hexagon in self.hexagons:
+            for connected_aspect in hexagon.connected_aspects:
+                self.canvas.itemconfigure(connected_aspect.drawn_text, text="")
 
-    def draw_model(self, r):
+    def reveal_texts(self):
+        for hexagon in self.hexagons:
+            for connected_aspect in hexagon.connected_aspects:
+                self.canvas.itemconfigure(connected_aspect.drawn_text, text=connected_aspect.text)
+
+    def create_nodes(self, hexagon):
+
+        self.G.add_node(hexagon.id, name=hexagon.name)
+        for connected_aspect in hexagon.connected_aspects:
+            aspect_in = connected_aspect.aspect_in.o_name
+            edge_attributes = edge_detector(aspect_in)
+
+            self.G.add_edge(hexagon.id, connected_aspect.hex_in_num, I=edge_attributes[0], P=edge_attributes[1],
+                            T=edge_attributes[2],
+                            C=edge_attributes[3], R=edge_attributes[4],
+                            value=connected_aspect.text)
+
+    def draw_model(self, r=None):
 
         for Id, hexagon in enumerate(self.hexagons):
             x = hexagon.x
@@ -539,7 +562,11 @@ class FramCanvas(tk.Frame):
             if not hexagon.is_end:
                 self.draw_line(Id, hexagon.connected_aspects, True)
                 self.draw_line_text(Id, hexagon)
+            self.create_nodes(hexagon)
+
+        # pdb.set_trace()
         self.add_tags()
+        return self.G
 
     def add_tags(self):
         # tag_list = []

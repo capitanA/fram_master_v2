@@ -1,8 +1,9 @@
 import csv
 import xml.etree.cElementTree as ET
 import ipdb
-from Helper import check_which_aspect
+from Helper import check_which_aspect, edge_detector
 from tkinter import simpledialog
+import networkx as nx
 
 ASPECT_DIC = {"1": "C", "2": "T", "3": "I", "4": "P", "5": "R", "6": "O"}
 DICT = {"Time": "time_stamp", "ActiveFunction": "active_func", "Active Function": "active_func",
@@ -14,6 +15,7 @@ DICT = {"Time": "time_stamp", "ActiveFunction": "active_func", "Active Function"
 class Event:
     def __init__(self, time_stamp=0, active_func=0, active_func_output=None, dstream_coupled_func=0,
                  coupled_faunction_aspect=None, time_tolerance=0, draw_active_func_output=None):
+        # FramCanvas.__init__(self)
         """Describes the variables inputted from a scenario file
 
         time_stamp: the time stamp of each data point
@@ -60,7 +62,7 @@ class SceneEvent:
                 self.scene_events.append(Event(int(row[0]), int(row[1]), row[2], int(row[3]), row_4, row[5]))
                 line_count += 1
 
-    def XML_ipload(self, filename):
+    def XML_upload(self, filename):
         xml_file = ET.parse(filename).getroot()
         for row in xml_file.iter("row"):
             event = Event()
@@ -75,14 +77,25 @@ class SceneEvent:
                     self.set_event(event, element)
             self.scene_events.append(event)
 
-    def scene_upload(self, filename, filetype):
+    def scene_upload(self, framcanvas, filename, filetype):
         if filetype == 'csv':
             self.CSV_upload(filename)
 
         elif filetype == "xml":
-            self.XML_ipload(filename)
+            self.XML_upload(filename)
+
+        self.graph_compeleter(self.scene_events, framcanvas)
 
         return self.scene_events
+
+    def graph_compeleter(self, scene_events, framcanvas):
+        graph = framcanvas.G
+        for scen_event in scene_events:
+            edge_attributes = edge_detector(scen_event.dstream_func_aspect)
+            graph.add_edge(scen_event.active_func, scen_event.dstream_coupled_func, I=edge_attributes[0],
+                           P=edge_attributes[1],
+                           T=edge_attributes[2],
+                           C=edge_attributes[3], R=edge_attributes[4], value=scen_event.active_func_output)
 
     def reset(self):
         self.scene_events.clear()

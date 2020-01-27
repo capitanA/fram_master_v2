@@ -109,9 +109,9 @@ class Recursive:
         #                         width=100
         #                         )
         if self.file_name.split("/")[-1]:
-            # x = self.canvas.winfo_width() / 2
-            # y = self.canvas.winfo_height() - 100
-            # self.clock.place(x=x, y=y)
+            x = self.canvas.winfo_width() / 2
+            y = self.canvas.winfo_height() - 100
+            self.clock.place(x=x, y=y)
             cwd = os.getcwd()
             directory = os.path.join(cwd, "Videos")
             if not os.path.exists(directory):
