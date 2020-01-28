@@ -152,6 +152,7 @@ class Recursive:
 
     def loop_video(self, *argv):
 
+
         portionx = 0
         portiony = 0
         counter = 0
@@ -735,7 +736,6 @@ class Recursive:
                 f"oops there was a discrepancy(RECURSIVE MODE) in scenario file at the time of "
                 f"{event.time_stamp} the recursive functions should be activated after being downstream function")
         aspect_in = event.dstream_func_aspect
-        # ipdb.set_trace()
         if hexagon.is_end:
             connected_aspect = AspectConnector(
                 aspect_in=getattr(self.get_hexagon(hex_in).hex_aspects, take_o_name(aspect_in)),

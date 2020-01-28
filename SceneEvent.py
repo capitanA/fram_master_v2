@@ -59,7 +59,7 @@ class SceneEvent:
                 continue
             else:
                 row_4 = check_which_aspect(row[4])
-                self.scene_events.append(Event(int(row[0]), int(row[1]), row[2], int(row[3]), row_4, row[5]))
+                self.scene_events.append(Event(int(row[0]), int(row[1]), row[2], int(row[3]), row_4))
                 line_count += 1
 
     def XML_upload(self, filename):
