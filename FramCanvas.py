@@ -1,15 +1,15 @@
-import math
-import xml.etree.ElementTree as ET
-from tkinter import filedialog
+# import math
+# import xml.etree.ElementTree as ET
+# from tkinter import filedialog
 from FramShapes import *
 from Helper import lcurve, take_o_name, get_connector, edge_detector
 from PIL import ImageGrab
 from PIL import Image, ImageTk
 import cv2
 import numpy as np
-from tkinter import messagebox
+# from tkinter import messagebox
 import ipdb
-from scipy.ndimage import zoom
+# from scipy.ndimage import zoom
 import networkx as nx
 
 r = 40
@@ -36,6 +36,7 @@ class FramCanvas(tk.Frame):
         self.ysb.grid(row=0, column=1, sticky="ns")
         self.window_width = window_width
         self.window_height = window_height
+        self.root=root_fram
 
         # for moving the Model in the canvas
         self.canvas.bind("<ButtonPress-1>", self.move_start)
@@ -134,9 +135,8 @@ class FramCanvas(tk.Frame):
 
     def move_hexagons(self, event):
         tag_list = self.canvas.gettags("current")
-        if "hex_line" not in tag_list:
+        if all("hex_line" not in s for s in tag_list) and tag_list:
             current_tag = tag_list[1]
-
             bboxx1, bboxy1, bboxx2, bboxy2 = self.canvas.bbox("current")
             x1 = (bboxx1 + bboxx2) / 2
             y1 = (bboxy1 + bboxy2) / 2
@@ -144,13 +144,6 @@ class FramCanvas(tk.Frame):
             y2 = self.canvas.canvasy(event.y)
             self.canvas.move(current_tag, x2 - x1, y2 - y1)
             self.coord_update_hexagon(current_tag, True)
-
-            # s = self.xml_root[0][int(current_tag)].attrib["x"]
-            # d = self.xml_root[0][int(current_tag)].attrib["y"]
-
-            # splited_str = current_tag.split("_")  # charcter  afater "_" would be the Id for that hexagon
-            # Id = splited_str[1]
-            # l = self.which_tags(int(Id))
             self.update_model(current_tag)
 
     def update_model(self, current_tag):
@@ -447,7 +440,8 @@ class FramCanvas(tk.Frame):
 
             self.canvas.itemconfigure(hexagon.drawn_text, font=new_font_2, width=text_width)
 
-    def draw_polygon(self, Id, hexagon):
+    def draw_polygon(self, hexagon):
+
         # if Id != 0 and not hexagon.is_end:
         #     hexagon.previous_hex = hexagon
         hexagon.drawn = self.canvas.create_polygon(hexagon.hex_aspects.outputs.x_c,
@@ -462,17 +456,22 @@ class FramCanvas(tk.Frame):
                                                    hexagon.hex_aspects.preconditions.y_c,
                                                    hexagon.hex_aspects.resources.x_c,
                                                    hexagon.hex_aspects.resources.y_c,
-                                                   fill="white", outline="black", tags=("model", f"hex_{Id}"))
+                                                   fill="white", outline="black", tags=("model", f"hex_{hexagon.id}"))
 
         self.canvas.tag_raise(hexagon.drawn)
 
-    def draw_polygon_text(self, Id, hexagon, text_width, x, y):
-        hexagon.drawn_text = self.canvas.create_text(x, y, anchor="center",
+    def draw_polygon_text(self, hexagon, text_width):
+        ###using text widget
+        # hexagon.drawn_text = tk.Text(self.root, width=10, height=1,wrap="char")
+        # hexagon.drawn_text.insert("1.0",f"{hexagon.name}")
+        # hexagon.drawn_text.place(x=self.canvas.canvasx(hexagon.x), y=self.canvas.canvasy(hexagon.y))
+
+        hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
                                                      text=hexagon.name,
                                                      font=("Helvetica", 6),
-                                                     width=text_width, tags=("model", f"hex_{Id}"))
+                                                     width=text_width, tags=("model", f"hex_{hexagon.id}"))
 
-    def draw_oval(self, Id, hexagon):
+    def draw_oval(self, hexagon):
         for attr, value in hexagon.hex_aspects.__dict__.items():
             if attr == "resources":
                 if value.y_oright > self.y_max:
@@ -482,16 +481,19 @@ class FramCanvas(tk.Frame):
                                                   value.x_oright,
                                                   value.y_oright,
                                                   fill="white",
-                                                  outline="black", tags=("model", f"hex_{Id}"))
+                                                  outline="black",
+                                                  tags=("model", f"hex_{hexagon.id}", f"hex_{hexagon.id}_aspct"))
+
         # return self.y_max
 
-    def draw_oval_text(self, Id, hexagon):
+    def draw_oval_text(self, hexagon):
         for attr, value in hexagon.hex_aspects.__dict__.items():
             value.drawn_text = self.canvas.create_text(value.x_c,
                                                        value.y_c,
                                                        anchor="center",
                                                        text=value.o_name,
-                                                       font=("Arial", 7), tags=("model", f"hex_{Id}"))
+                                                       font=("Arial", 7), tags=(
+                "model", f"hex_{hexagon.id}", f"hex_{hexagon.id}_aspct_txt"))
 
     def draw_line(self, Id, connected_aspects, in_Model):
 
@@ -523,7 +525,7 @@ class FramCanvas(tk.Frame):
                 (object.aspect_in.y_sline + object.aspect_out.y_sline) / 2, anchor="center",
                 text=object.text,
                 font=("Helvetica", 7),
-                width=line_text_width, tags=("model", f"hex_line{Id}"))
+                width=line_text_width, tags=("model", f"hex_line{hexagon.id}"))
 
     def remove_texts(self):
         for hexagon in self.hexagons:
@@ -547,18 +549,18 @@ class FramCanvas(tk.Frame):
                             C=edge_attributes[3], R=edge_attributes[4],
                             value=connected_aspect.text)
 
-    def draw_model(self, r=None):
+    def draw_model(self):
 
         for Id, hexagon in enumerate(self.hexagons):
             x = hexagon.x
             y = hexagon.y
             text_width = 1 * (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.inputs.x_c)
 
-            self.draw_polygon(Id, hexagon)
-            self.draw_polygon_text(Id, hexagon, text_width, x, y)
-            self.draw_oval(Id, hexagon)
+            self.draw_polygon(hexagon)
+            self.draw_polygon_text(hexagon, text_width)
+            self.draw_oval(hexagon)
             hexagon.y_max = self.y_max
-            self.draw_oval_text(Id, hexagon)
+            self.draw_oval_text(hexagon)
             if not hexagon.is_end:
                 self.draw_line(Id, hexagon.connected_aspects, True)
                 self.draw_line_text(Id, hexagon)
@@ -686,7 +688,7 @@ class FramCanvas(tk.Frame):
 
         for hexagon in self.hexagons:
             self.add_connectors(self.xml_root, hexagon)
-        self.draw_model(r=40)
+        self.draw_model()
         self.logger.info('### model has been uploaded')
 
     def reset_canvas(self):

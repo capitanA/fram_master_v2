@@ -34,7 +34,7 @@ Dic_color = {"Red": "tomato", "Blue": "blue", "Green": "springgreen"}
 
 class Recursive:
 
-    def __init__(self, pre_screenshot_time=None, history_list=None, hexagons=None, root=None,
+    def __init__(self, pre_screenshot_time=None, history_list=None, framcanvas=None, root=None,
                  scene_events=None,
                  canvas=None,
                  speed_mode=None,
@@ -57,7 +57,8 @@ class Recursive:
         self.window_width = window_width
         self.window_height = window_height
         # self.activation_color = Dic_color[activation_color.get()]
-        self.hexagons = hexagons
+        self.hexagons = framcanvas.hexagons
+        self.framcanvas = framcanvas
         self.scene_events = scene_events
         # self.f_choice = f_choice
         # self.f_choice_number = f_choice_number
@@ -151,7 +152,6 @@ class Recursive:
             loop_video.start()
 
     def loop_video(self, *argv):
-
 
         portionx = 0
         portiony = 0
@@ -621,6 +621,20 @@ class Recursive:
         #     self.reset_actives()
         #     self.deactivate_last_hex(hexagon_in.connected_aspects)
 
+    def auto_focus(self, hexagon):
+        # text_width = 1 * (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.inputs.x_c)
+        # bbox = self.canvas.bbox(hexagon.drawn)
+        #
+        # self.canvas.itemconfigure(hexagon.drawn, width=4)
+        # self.canvas.itemconfigure(f"hex_{hexagon.id}_aspct", width=3)
+        # self.canvas.itemconfigure(f"hex_{hexagon.id}_aspct_txt", font=5)
+        # self.canvas.itemconfigure(hexagon.drawn_text,font=5)
+        # for connected_aspect in hexagon.connected_aspects:
+        #     self.canvas.itemconfigure(connected_aspect.drawn_text,font=20)
+        pass
+
+
+
     def activator(self, event, hexagon, duration_time, connected_aspect):
 
         ## activating hexagon, input aspect and output aspect
@@ -628,6 +642,7 @@ class Recursive:
             self.canvas.itemconfigure(hexagon.drawn, fill="tomato")
             hexagon.is_active = True
             # self.logger.info('### function {} is activated'.format(event.active_func))
+            self.auto_focus(hexagon)
 
         self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="tomato")
         self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
@@ -717,7 +732,8 @@ class Recursive:
         aspect_in = getattr(hexagon_in.hex_aspects, take_o_name(event.dstream_func_aspect))
         aspect_out = hexagon.hex_aspects.outputs
         text = event.active_func_output
-        connected_aspect = AspectConnector(aspect_in=aspect_in, aspect_out=aspect_out, hex_in_num=hex_in_num, text=text,
+        connected_aspect = AspectConnector(aspect_in=aspect_in, aspect_out=aspect_out, hex_in_num=hex_in_num,
+                                           text=text,
                                            is_active=False)
         hexagon.connected_aspects.append(connected_aspect)
         return connected_aspect
@@ -804,7 +820,8 @@ class Recursive:
             for event in history_data.history_events:
                 if event.time == current_time:
                     self.events_history.append(
-                        {"event": event, "f_choice": history_data.f_choice, "f_choice_id": history_data.f_choice_id})
+                        {"event": event, "f_choice": history_data.f_choice,
+                         "f_choice_id": history_data.f_choice_id})
         return self.events_history
 
     def loop_recursive(self, time_stamp, directory_new, history_times=None):

@@ -141,7 +141,7 @@ class Start:
         if self.history_list:
 
             # speed = self.check_speed_object
-            self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
+            self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, framcanvas=dynaFramCanvas,
                                     root=root,
                                     scene_events=self.scene_event.scene_events,
                                     history_list=self.history_list,
@@ -153,7 +153,7 @@ class Start:
         else:
             # ipdb.set_trace()
             # speed = self.check_speed_object
-            self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, hexagons=dynaFramCanvas.hexagons,
+            self.method = Recursive(pre_screenshot_time=self.pre_screenshot_time, framcanvas=dynaFramCanvas,
                                     root=root,
                                     canvas=dynaFramCanvas.canvas,
                                     scene_events=self.scene_event.scene_events,
