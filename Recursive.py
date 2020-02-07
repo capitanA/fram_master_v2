@@ -7,6 +7,7 @@ import os
 import cv2
 import math
 from PIL import ImageGrab
+from FramShapes import *
 from tkinter import messagebox
 import numpy as np
 # from Helper import Timer
@@ -89,6 +90,9 @@ class Recursive:
         #                          height=300)
         self.current_hex = None
         self.current_arcs = None
+        ####auto focuse
+        self.zoomed_hexagons = list()
+        self.reg_hexagon = list()
 
     def set_video(self, timer):
 
@@ -503,7 +507,21 @@ class Recursive:
                 elif step > 5:
                     self.draw_halfcircle_lasthexagon(connected_aspect, step)
                 if step == 10:
+                    # this line is for recoordinat the hexagons in Auto zooming mode
+                    # self.reshaping_hexagons(connected_aspect)
+
                     self.deactivate_last_hex(connected_aspect)
+
+    def reshaping_hexagons(self, connected_aspect):
+        for hex in self.zoomed_hexagons:
+            self.canvas.delete(hex.drawn)
+            self.canvas.delete(hex.drawn_text)
+            self.canvas.delete(f"hex_{hex.id}_aspct", f"hex_{hex.id}_aspct_txt")
+        for hex in self.reg_hexagon:
+            self.framcanvas.draw_polygon(hex)
+            self.framcanvas.draw_polygon_text(hex, connected_aspect.aspect_out.x_c - connected_aspect.aspect_in.x_c)
+            self.framcanvas.draw_oval(hex)
+            self.framcanvas.draw_oval_text(hex)
 
     def deactivate_last_hex(self, connected_aspect):
         self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="white")
@@ -622,17 +640,41 @@ class Recursive:
         #     self.deactivate_last_hex(hexagon_in.connected_aspects)
 
     def auto_focus(self, hexagon):
-        # text_width = 1 * (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.inputs.x_c)
-        # bbox = self.canvas.bbox(hexagon.drawn)
-        #
-        # self.canvas.itemconfigure(hexagon.drawn, width=4)
-        # self.canvas.itemconfigure(f"hex_{hexagon.id}_aspct", width=3)
-        # self.canvas.itemconfigure(f"hex_{hexagon.id}_aspct_txt", font=5)
-        # self.canvas.itemconfigure(hexagon.drawn_text,font=5)
-        # for connected_aspect in hexagon.connected_aspects:
-        #     self.canvas.itemconfigure(connected_aspect.drawn_text,font=20)
-        pass
 
+        # text_width = 1 * (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.inputs.x_c)
+        # self.reg_hexagon.append(hexagon)
+        # x = float(hexagon.x)
+        # y = float(hexagon.y)
+        #
+        # aspects = Aspects(outputs=Aspect(o_name="O", x=x, out_text=[], y=y, r=55),
+        #                   controls=Aspect(o_name="C", x=x, y=y, r=55),
+        #                   times=Aspect(o_name="T", x=x, y=y, r=55),
+        #                   inputs=Aspect(o_name="I", x=x, y=y, r=55),
+        #                   preconditions=Aspect(o_name="P", x=x, y=y, r=55),
+        #                   resources=Aspect(o_name="R", x=x, y=y, r=55))
+        # zoomed_hex = Hexagon(id=hexagon.id, name=hexagon.name, x=hexagon.x, y=hexagon.y,
+        #                      connected_aspects=hexagon.connected_aspects, hex_aspects=aspects)
+        # self.zoomed_hexagons.append(zoomed_hex)
+        #
+        # self.framcanvas.draw_polygon(zoomed_hex)
+        # self.framcanvas.draw_polygon_text(zoomed_hex, text_width)
+        # self.framcanvas.draw_oval(zoomed_hex)
+        # self.framcanvas.draw_oval_text(zoomed_hex)
+        # # self.framcanvas.draw_line(zoomed_hex, zoomed_hex.connected_aspects, False)
+        # # self.framcanvas.draw_line_text(zoomed_hex.id, zoomed_hex)
+        #
+        # self.canvas.itemconfigure(zoomed_hex.drawn, width=4)
+        # self.canvas.itemconfigure(f"hex_{zoomed_hex.id}_aspct", width=3)
+        # self.canvas.itemconfigure(f"hex_{zoomed_hex.id}_aspct_txt", font=5)
+        # self.canvas.itemconfigure(zoomed_hex.drawn_text, font=6)
+        # for connected_aspect in zoomed_hex.connected_aspects:
+        #     self.canvas.itemconfigure(connected_aspect.drawn_text, font=12)
+        # self.canvas.itemconfigure(zoomed_hex.drawn,fill="tomato")
+        # for connected_aspect in zoomed_hex.connected_aspects:
+        #     # ipdb.set_trace()
+        #     self.canvas.itemconfigure(connected_aspect.aspect_in.drawn, fill="tomato")
+        #     self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
+        pass
 
 
     def activator(self, event, hexagon, duration_time, connected_aspect):
@@ -741,10 +783,8 @@ class Recursive:
     def activate_event(self, event, row):
         hexagon = self.get_hexagon(event.active_func)
         hex_in = int(event.dstream_coupled_func)
-        # ipdb.set_trace()
 
-        # if event.dstream_coupled_func in self.recursive_funcs and self.scene_events[
-        #     row + 1].active_func not in self.recursive_funcs:
+
         if row != self.scene_events.index(
                 self.scene_events[-1]) and event.dstream_coupled_func in self.recursive_funcs and self.scene_events[
             row + 1].active_func not in self.recursive_funcs:
@@ -803,7 +843,6 @@ class Recursive:
             if not hexagon.connected_aspects:
                 hexagon.is_end = True
             if hexagon.is_end:
-                # print(self.get_hexagon(event.active_func).is_end)
                 self.reset_actives()
 
     def history_event_generator(self):
@@ -835,13 +874,7 @@ class Recursive:
             for event in events["events"]:
                 self.activate_event(event, events["row"])
 
-            # ######
-            # self.img = ImageGrab.grab(bbox=(800, 1100, 950, 1250))
-            # frame = cv2.cvtColor(np.array(self.img), cv2.COLOR_BGR2RGB)
-            # # self.zimg = ImageTk.PhotoImage(self.img)
-            # size = 200, 200
-            # self.zimg = ImageTk.PhotoImage(self.img.resize(size))
-            # #####
+
 
             ## checking for existance of history events
 
@@ -889,12 +922,6 @@ class Recursive:
                 self.canvas.itemconfigure(connected_aspect.drawn_text, text="")
 
     def play_recursive(self):
-        # ipdb.set_trace()
-        # if self.speed_mode in [1, 2, 4, 8,16]:
-        #     # self.speed_mode = DIC_TIME[self.speed_mode]
-        #     self.speed_mode = DIC_TIME[self.speed_mode]
-        # else:
-        #     self.speed_mode = int(self.speed_mode)
 
         if not self.hexagons:
             messagebox.showinfo("oops", "First,Upload the model")

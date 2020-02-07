@@ -79,7 +79,7 @@ class Aspect:
                  o_name="",
                  x=0,
                  y=0,
-                 r=40,
+                 r=0,
                  out_text=[],  # it may have two out_text, in that case what happen? I think it should be a list
                  drawn=None,
                  drawn_text=None,
@@ -110,6 +110,7 @@ class Aspect:
         self.drawn_text = drawn_text
         self.is_active = is_active
         self.out_text = out_text
+        # self.r=r
         self.x_c = 0
         self.y_c = 0
         self.x_sline = 0

@@ -31,7 +31,7 @@ from tkinter import simpledialog
 # from win32api import GetSystemMetrics
 
 
-r = 40
+r = 50
 history_data = None
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
