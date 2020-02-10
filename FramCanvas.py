@@ -11,6 +11,7 @@ import numpy as np
 import ipdb
 # from scipy.ndimage import zoom
 import networkx as nx
+from tkinter import font
 
 
 class FramCanvas(tk.Frame):
@@ -145,46 +146,40 @@ class FramCanvas(tk.Frame):
             self.update_model(current_tag)
 
     def update_model(self, current_tag):
+
         splited_str = current_tag.split("_")  # charcter  afater "_" would be the Id for that hexagon
         Id = splited_str[1]
+        # if self.hexagons[int(Id)].connected_aspects:
+
+        # str_text_font = self.canvas.itemcget(self.hexagons[int(Id)].connected_aspects[0].drawn_text, "font")
+        # font = [int(s) for s in str_text_font.split() if s.isdigit()]
+        # line_text_width = int(self.canvas.itemcget(self.hexagons[int(Id)].connected_aspects[0].drawn_text, "width"))
         list_tag = self.which_tags(int(Id))
+        list_tag.append(self.hexagons[int(Id)].id)
+        print(list_tag)
         if list_tag:
             for v in list_tag:
+                if self.hexagons[int(v)].is_end:
+                    continue
+
+                str_text_font = self.canvas.itemcget(self.hexagons[int(v)].connected_aspects[0].drawn_text, "font")
+                font = [int(s) for s in str_text_font.split() if s.isdigit()]
+                line_text_width = int(
+                    self.canvas.itemcget(self.hexagons[int(v)].connected_aspects[0].drawn_text, "width"))
+
                 self.canvas.delete(f"hex_line{str(v)}")
                 self.draw_line(int(v), self.hexagons[v].connected_aspects, False)
+                self.draw_line_text(int(v), self.hexagons[v], True, font, line_text_width)
 
-                # for connected_aspect in self.hexagons[v].connected_aspects:
-                #
-                #
-                #     str_font = self.canvas.itemcget(connected_aspect.drawn_text, "font")
-                #     print(connected_aspect.drawn_text)
-                #     # ipdb.set_trace()
-                #     # font = [int(s) for s in str_font.split() if s.isdigit()][0]
-                #     print(self.canvas.itemcget(connected_aspect.drawn_text, "width"))
-                #     width = int(self.canvas.itemcget(connected_aspect.drawn_text, "width"))
-                #     self.canvas.itemconfigure(connected_aspect.drawn_text, font=8, width=width, color="red")
-
-                self.draw_line_text(int(v), self.hexagons[v])
-
-        self.canvas.delete(f"hex_line{Id}")
-        # self.coord_update_hexagon()
-
-        # for hexagon in self.hexagons:
-        #     if hexagon.id in l:
-        #         self.draw_line(int(Id), hexagon.connected_aspects)
-        #         self.draw_line_text(int(Id), hexagon)
-        current_hex_object = self.hexagons[int(Id)]
-        self.draw_line(int(Id), current_hex_object.connected_aspects, False)
-
-        # for connected_aspect in current_hex_object.connected_aspects:
-        #     font = self.canvas.itemcget(connected_aspect.drawn_text, "font")
-        #     print(current_hex_object.id)
-        #     print(font)
-        #     width = int(self.canvas.itemcget(connected_aspect.drawn_text, "width"))
-        #     print(width)
-        #     self.canvas.itemconfigure(connected_aspect.drawn_text, font=font, width=width)
-
-        self.draw_line_text(int(Id), current_hex_object)
+        # str_text_font = self.canvas.itemcget(self.hexagons[int(Id)].connected_aspects[0].drawn_text, "font")
+        # font = [int(s) for s in str_text_font.split() if s.isdigit()]
+        # line_text_width = int(
+        #     self.canvas.itemcget(self.hexagons[int(Id)].connected_aspects[0].drawn_text, "width"))
+        #
+        # self.canvas.delete(f"hex_line{Id}")
+        # current_hex_object = self.hexagons[int(Id)]
+        # self.draw_line(int(Id), current_hex_object.connected_aspects, False)
+        # self.draw_line_text(int(Id), current_hex_object, True, font, line_text_width)
 
     def which_tags(self, Id):
         # ipdb.set_trace()
@@ -440,6 +435,7 @@ class FramCanvas(tk.Frame):
         # hexagon.drawn_text = tk.Text(self.root, width=10, height=1,wrap="char")
         # hexagon.drawn_text.insert("1.0",f"{hexagon.name}")
         # hexagon.drawn_text.place(x=self.canvas.canvasx(hexagon.x), y=self.canvas.canvasy(hexagon.y))
+
         X2 = (hexagon.hex_aspects.outputs.x_c - hexagon.hex_aspects.controls.x_c) / 2
         X1 = (hexagon.hex_aspects.times.x_c - hexagon.hex_aspects.inputs.x_c) / 2
 
@@ -473,37 +469,37 @@ class FramCanvas(tk.Frame):
                                                        font=("Arial", 7), tags=(
                     "model", f"hex_{hexagon.id}", f"hex_{hexagon.id}_aspct_txt"))
 
-    def draw_line(self, Id, connected_aspects, in_Model):
+    def draw_line(self, Id, connected_aspects, in_model):
 
         for object in connected_aspects:
-            # self.canvas.addtag_withtag(f"hex_line{object.hex_in_num}", f"hex_line{Id}")
 
             object.drawn = lcurve(Id, self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline)
 
-            if in_Model:
+            if in_model:
                 self.tag_dic.append((Id, object.hex_in_num))
 
-            # self.tag_dic[Id] = object.hex_in_num
-
-            # object.drawn = lcurve(self.canvas, 200, 300, 700, 600)
-
-    def draw_line_text(self, Id, hexagon):
+    def draw_line_text(self, Id, hexagon, drag_hex, current_font=None, current_width=None):
         for object in hexagon.connected_aspects:
-            # if abs(object.aspect_out.x_sline - object.aspect_in.x_sline) < 45:
             line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
-            # else:
 
-            # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
-            #                                 - object.aspect_in.x_sline), 4 * r)
+            if drag_hex:
+
+                font = current_font
+                line_text_width = current_width
+            else:
+                pass
+                font = 7
+                line_text_width = abs(hexagon.hex_aspects.inputs.x_c - hexagon.hex_aspects.outputs.x_c)
             object.drawn_text = self.canvas.create_text(
                 (object.aspect_in.x_sline + object.aspect_out.x_sline) / 2,
                 (object.aspect_in.y_sline + object.aspect_out.y_sline) / 2, anchor="center",
                 text=object.text,
-                font=("Helvetica", 7),
-                width=line_text_width, tags=("model", f"hex_line{hexagon.id}"), justify="center")
+                font=("Helvetica", font),
+                width=line_text_width, tags=("model", f"hex_line{hexagon.id}", f"text_{hexagon.id}"),
+                justify="center")
 
     def remove_texts(self):
         for hexagon in self.hexagons:
@@ -541,7 +537,7 @@ class FramCanvas(tk.Frame):
             self.draw_oval_text(hexagon)
             if not hexagon.is_end:
                 self.draw_line(Id, hexagon.connected_aspects, True)
-                self.draw_line_text(Id, hexagon)
+                self.draw_line_text(Id, hexagon, False)
             self.create_nodes(hexagon)
 
         # pdb.set_trace()

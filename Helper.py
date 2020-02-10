@@ -26,17 +26,9 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
     Y2:X_in
     Y2:Y_in
     """
-    # line_text_width = min(0.8 * abs(object.aspect_out.x_sline
-    #                                 - object.aspect_in.x_sline), 4 * 40)
 
     if not linear:
         res = []
-        # if abs(x2 - x1) < 20 or abs(y2 - y1) < 20:  # when the curve cannot be drawn so a straght line will be drawn
-        #
-        #     res.append(canvas.create_line(x2, y2, x1, y1))
-        #
-        #     return res
-        # else:
         arcs = get_arc_properties(x1, y1, x2, y2)
 
         if len(arcs) == 1:
@@ -70,10 +62,6 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
         else:
             arcs = get_arc_properties(x1, y1, x2, y2)
             for arc in arcs:
-                # res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
-                #                              extent=arc.extend,
-                #                              style=tk.ARC))
-
                 r = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
                                       style=tk.ARC, tags=("model", f"hex_line{id}"))
@@ -82,86 +70,10 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
             return res
 
 
-# def get_arc_properties(x1, y1, x2, y2):
-#     arcs = []
-#     # in this line check if the input and output are in a specific interval so that the staright line will be drawn
-#     if (y1 <= (y2 + 10) and y2 <= (y1 + 10)) or (x1 <= (x2 + 10) and x2 <= (x1 + 10)):
-#         return [Arc(x1, y1, x2, y2, 0, 180)]
-#
-#     if x1 < x2:
-#         mid_x = (x1 + x2) / 2
-#         mid_y = (y1 + y2) / 2
-#         if y1 > mid_y:  # the curv should go upway
-#             if x1 > mid_x:  # it means that the aspect_in is ahead of aspect_out (it never come in this line)
-#                 bbox_x1 = mid_x
-#                 bbox_y1 = mid_y - (y1 - mid_y)
-#                 bbox_x2 = x1 + (x1 - mid_x)
-#                 bbox_y2 = y1
-#                 start_ang = 180
-#             else:  # it means that the aspect_out is ahead of aspect_in
-#                 bbox_x1 = x1 - (mid_x - x1)
-#                 bbox_y1 = mid_y - (y1 - mid_y)
-#                 bbox_x2 = mid_x
-#                 bbox_y2 = y1
-#                 start_ang = 270
-#         else:  # the curve should go downway
-#             if x1 > mid_x:
-#                 bbox_x1 = mid_x
-#                 bbox_y1 = mid_y - (mid_y - y1)
-#                 bbox_x2 = x1 + (x1 - mid_x)
-#                 bbox_y2 = mid_y + (mid_y - y1)
-#                 start_ang = 90
-#             else:
-#                 bbox_x1 = x1 - (mid_x - x1)
-#                 bbox_y1 = y1
-#                 bbox_x2 = mid_x
-#                 bbox_y2 = mid_y + (mid_y - y1)
-#                 start_ang = 0
-#
-#         arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
-#
-#         if y2 > mid_y:
-#             if x2 > mid_x:
-#                 bbox_x1 = mid_x
-#                 bbox_y1 = mid_y - (y2 - mid_y)
-#                 bbox_x2 = x2 + (x2 - mid_x)
-#                 bbox_y2 = y2
-#                 start_ang = 180
-#             else:
-#                 bbox_x1 = x2 - (mid_x - x1)
-#                 bbox_y1 = mid_y - (y2 - mid_y)
-#                 bbox_x2 = mid_x
-#                 bbox_y2 = y2
-#                 start_ang = 270
-#         else:
-#             if x2 > mid_x:
-#                 bbox_x1 = mid_x
-#                 bbox_y1 = mid_y - (mid_y - y2)
-#                 bbox_x2 = x2 + (x2 - mid_x)
-#                 bbox_y2 = mid_y + (mid_y - y2)
-#                 start_ang = 90
-#             else:
-#                 bbox_x1 = x2 - (mid_x - x2)
-#                 bbox_y1 = y2
-#                 bbox_x2 = mid_x
-#                 bbox_y2 = mid_y + (mid_y - y2)
-#                 start_ang = 0
-#
-#         arcs.append(Arc(bbox_x1, bbox_y1, bbox_x2, bbox_y2, start_ang, 90))
-#
-#     else:
-#         arcs = get_arc_properties(x2, y2, x1, y1)
-#
-#     return arcs
 def get_arc_properties(x1, y1, x2, y2):
     arcs = []
     # in this line check if the input and output are in a specific interval so that the staright line will be drawn
 
-    # if (y1 <= (y2 + 10) and y2 <= (y1 + 10)) or (x1 <= (x2 + 10) and x2 <= (x1 + 10)):
-    #     return [Arc(x1, y1, x2, y2, 0, 180)]
-    # ipdb.set_trace()
-    # if (y1 <= (y2 + 20) and y2 <= (y1 + 20)) or (x1 <= (x2 + 20) and x2 <= (x1 + 20)):
-    # ipdb.set_trace()
     if abs(x2 - x1) < 20 or abs(y2 - y1) < 20:
         return [Arc(x1, y1, x2, y2)]
 
@@ -297,7 +209,6 @@ def edge_detector(aspect_in):
 
 # which connected_aspect should update,(connected_aspects is a list)
 def get_connector(event, connected_aspects):
-    # pdb.set_trace()
     for connected_aspect in connected_aspects:
         if connected_aspect.hex_in_num == int(event.dstream_coupled_func):
             return connected_aspect
@@ -307,7 +218,6 @@ def get_connector(event, connected_aspects):
 
 def get_history_events(current_time, history_list):
     events_history = []
-    # pdb.set_trace()
     for history_data in history_list:
         for event in history_data.history_events:
             if event.time == current_time:
@@ -317,10 +227,7 @@ def get_history_events(current_time, history_list):
 
 
 def check_which_aspect(aspect):
-    # pdb.set_trace()
-    # print(type(aspect))
     if aspect.isnumeric():
-        # if isinstance(aspect,int):
         if aspect == "1":
             return "C"
         elif aspect == "2":
@@ -366,16 +273,12 @@ class MyThread(threading.Thread):
         self.speed_mode = speed_mode
         self._stop_event = threading.Event()
 
-        # function using _stop function
-
     def start_counter(self):
         if self.stopped():
             return
         self.current_time += 1
         self.label['text'] = f"TIME:{str(self.current_time)}s" if self.current_time > -1 else 0
-        # self.start_time = start_time
         if self.current_time < self.last_time:
-            # self.label.after(DIC_TIME[self.speed_mode], self.start_counter)
             self.label.after(self.speed_mode, self.start_counter)
         else:
             self.stop()
