@@ -483,7 +483,7 @@ class Recursive:
                                                                           p_x,
                                                                           p_y,
                                                                           width=1.9,
-                                                                          fill="red", tags="model"))
+                                                                          fill="tomato", tags="model"))
         else:
             if not last_hexagon:
                 if connected_aspect.aspect_out.x_sline - connected_aspect.aspect_in.x_sline > 20:
@@ -676,8 +676,18 @@ class Recursive:
         #     self.canvas.itemconfigure(connected_aspect.aspect_out.drawn, fill="tomato")
         pass
 
-
     def activator(self, event, hexagon, duration_time, connected_aspect):
+
+        pos_3 = self.canvas.coords(hexagon.hex_aspects.times.drawn)
+        pos_1 = self.canvas.coords(hexagon.hex_aspects.outputs.drawn)
+        pos_2 = self.canvas.coords(hexagon.hex_aspects.inputs.drawn)
+        pos_4 = self.canvas.coords(hexagon.hex_aspects.controls.drawn)
+        x_output = pos_1[0] + pos_1[3] / 2
+        x_control = pos_4[0] + pos_4[3] / 2
+        x_time = pos_3[0] + pos_3[3] / 2
+        x_input = pos_2[0] + pos_2[3] / 2
+        x2 = (x_control + x_output) / 2
+        x1 = (x_time + x_input) / 2
 
         ## activating hexagon, input aspect and output aspect
         if not hexagon.is_active:
@@ -713,23 +723,29 @@ class Recursive:
             if connected_aspect.drawn_text:
                 self.canvas.delete(connected_aspect.drawn_text)
 
+            text_width = x2 - x1
+            new_font = text_width / 5
+
             connected_aspect.drawn_text = self.canvas.create_text(
                 hexagon.hex_aspects.outputs.x_sline - X_portion,
                 hexagon.hex_aspects.outputs.y_sline + Y_portion,
                 anchor="center",
                 text=connected_aspect.text,
-                font=("Helvetica", 10),
+                font=("Helvetica", int(new_font), "bold"),
                 width=line_text_width, tags="model")
 
         else:
             if connected_aspect.drawn_text:
                 self.canvas.delete(connected_aspect.drawn_text)
+
+            text_width = x2 - x1
+            new_font = text_width / 5
             connected_aspect.drawn_text = self.canvas.create_text(
                 (connected_aspect.aspect_in.x_sline + connected_aspect.aspect_out.x_sline) / 2,
                 (connected_aspect.aspect_in.y_sline + connected_aspect.aspect_out.y_sline) / 2,
                 anchor="center",
                 text=connected_aspect.text,
-                font=("Helvetica", 10),
+                font=("Helvetica", int(new_font), "bold"),
                 width=line_text_width, tags="model")
 
         # zoom_thread=threading.Thread(target=self.zoom_Procedure)
@@ -783,7 +799,6 @@ class Recursive:
     def activate_event(self, event, row):
         hexagon = self.get_hexagon(event.active_func)
         hex_in = int(event.dstream_coupled_func)
-
 
         if row != self.scene_events.index(
                 self.scene_events[-1]) and event.dstream_coupled_func in self.recursive_funcs and self.scene_events[
@@ -873,8 +888,6 @@ class Recursive:
             self.check_for_reset(events)
             for event in events["events"]:
                 self.activate_event(event, events["row"])
-
-
 
             ## checking for existance of history events
 

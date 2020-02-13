@@ -210,13 +210,13 @@ class Start:
     #                            speed_mode.get())
 
     def screen_capture(self):
-        # pdb.set_trace()
         img = ImageGrab.grab()
         img_np = np.array(img)
         frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
         cwd = os.getcwd()
         directory = os.path.join(cwd, "screenshots", "capture", "capture_{}.jpg".format(CLOCK["text"]))
         directory_root = os.path.join(cwd, "screenshots", "capture")
+        ipdb.set_trace()
         if os.path.exists(directory_root):
             pass
         else:
