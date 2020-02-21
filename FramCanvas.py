@@ -738,6 +738,9 @@ class FramCanvas(tk.Frame):
         self.draw_model()
         self.logger.info('### model has been uploaded')
 
+    def autosave_canvas(self):
+        pass
+
     def reset_canvas(self):
         # self.reset = True
         self.hexagons.clear()
