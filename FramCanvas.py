@@ -345,7 +345,7 @@ class FramCanvas(tk.Frame):
         x_input = pos_2[0] + pos_2[3] / 2
         x2 = (x_control + x_output) / 2
         x1 = (x_time + x_input) / 2
-        text_width = x2-x1
+        text_width = x2 - x1
         new_font = int((text_width / 5))
         if flag > 0:
             factor = 1.03
@@ -468,13 +468,13 @@ class FramCanvas(tk.Frame):
             name = name + "..."
             hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
                                                          text=name,
-                                                         font=("Helvetica", 6,"bold"),
+                                                         font=("Helvetica", 6, "bold"),
                                                          width=X2 - X1, tags=("model", f"hex_{hexagon.id}"),
                                                          justify="center")
         else:
             hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
                                                          text=hexagon.name,
-                                                         font=("Helvetica", 6,"bold"),
+                                                         font=("Helvetica", 6, "bold"),
                                                          width=X2 - X1, tags=("model", f"hex_{hexagon.id}"),
                                                          justify="center")
 
@@ -697,6 +697,9 @@ class FramCanvas(tk.Frame):
             self.add_connectors(self.xml_root, hexagon)
         self.draw_model()
         self.logger.info('### model has been uploaded')
+
+    def autosave_canvas(self):
+        pass
 
     def reset_canvas(self):
         # self.reset = True
