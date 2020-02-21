@@ -519,7 +519,7 @@ class Recursive:
             self.canvas.delete(f"hex_{hex.id}_aspct", f"hex_{hex.id}_aspct_txt")
         for hex in self.reg_hexagon:
             self.framcanvas.draw_polygon(hex)
-            self.framcanvas.draw_polygon_text(hex, connected_aspect.aspect_out.x_c - connected_aspect.aspect_in.x_c)
+            self.framcanvas.draw_polygon_text(hex)
             self.framcanvas.draw_oval(hex)
             self.framcanvas.draw_oval_text(hex)
 

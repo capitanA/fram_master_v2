@@ -63,7 +63,7 @@ class Linear:
         self.time = -1
         self.max_time = self.scene_events[-1].time_stamp
         self.uniq_timestamp_sceneevents = list()
-        self.uniq_activefunc_sceneevents = list()
+        self.uniq_activefunc_sceneevents = list() # those event which should be activated is in a uniq time
         self.time_stamp = -1
         self.repeat_func = -1
         self.uniq_hexagon = []
@@ -256,11 +256,39 @@ class Linear:
                                                    fill="white", outline="black")
 
     def draw_polygon_text(self, hexagon):
-        text_width = 1.5 * (hexagon.hex_aspects.controls.x_c - hexagon.hex_aspects.times.x_c)
-        hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
-                                                     text=hexagon.name,
-                                                     font=("Helvetica", 9),
-                                                     width=text_width)
+        pos = self.canvas.coords(hexagon.drawn)
+
+        x_output = pos[0]
+        x_control = pos[2]
+        x_time = pos[4]
+        x_input = pos[6]
+        x2 = (x_control + x_output) / 2
+        x1 = (x_time + x_input) / 2
+        text_width = x2 - x1
+
+        """If the hexagons' text were too much it would be truncated"""
+        if len(hexagon.name) > 50:
+            truncated_char = len(hexagon.name) - 50
+            hex_name = hexagon.name
+            name = hex_name[0:51]
+            name = name + "..."
+            hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
+                                                         text=name,
+                                                         font=("Arial", 8, "bold"),
+                                                         width=int(text_width), tags=("model", f"hex_{hexagon.id}"),
+                                                         justify="center")
+        else:
+            hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
+                                                         text=hexagon.name,
+                                                         font=("Arial", 8, "bold"),
+                                                         width=int(text_width), tags=("model", f"hex_{hexagon.id}"),
+                                                         justify="center")
+
+        # text_width = 1.5 * (hexagon.hex_aspects.controls.x_c - hexagon.hex_aspects.times.x_c)
+        # hexagon.drawn_text = self.canvas.create_text(hexagon.x, hexagon.y, anchor="center",
+        #                                              text=hexagon.name,
+        #                                              font=("Helvetica", 9),
+        #                                              width=text_width)
 
     def draw_oval(self, hexagon):
         for attr, value in hexagon.hex_aspects.__dict__.items():
@@ -282,7 +310,7 @@ class Linear:
     def draw_line(self, hexagon):
 
         for object in hexagon.connected_aspects:
-            object.drawn = lcurve(None,self.canvas, object.aspect_in.x_sline,
+            object.drawn = lcurve(None, self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline, linear=True)
@@ -476,14 +504,14 @@ class Linear:
             self.canvas.create_text(cp_x, self.window_height,
                                     anchor="center",
                                     text=time_text,
-                                    font=("Helvetica", 10),
+                                    font=("Arrial Narrow", 10,"bold"),
                                     fill="red")
 
         x1 = self.canvas.winfo_width()
         x2 = self.hexagons[-1].hex_aspects.outputs.x_sline + 30
         self.canvas.tag_lower(self.canvas.create_line(x1, self.window_height,
                                                       x2,
-                                                      self.window_height -8,
+                                                      self.window_height - 8,
                                                       width=10,
                                                       fill="springgreen"))
 
@@ -508,7 +536,7 @@ class Linear:
 
     def draw_line_inactive_funcs(self, hexagon):
         for object in hexagon.connected_aspects:
-            object.drawn = lcurve(None,self.canvas, object.aspect_in.x_sline,
+            object.drawn = lcurve(None, self.canvas, object.aspect_in.x_sline,
                                   object.aspect_in.y_sline,
                                   object.aspect_out.x_sline,
                                   object.aspect_out.y_sline, linear=True)
@@ -780,7 +808,6 @@ class Linear:
                 self.play_linear()
 
     def play_linear(self):
-        """trial"""
         directory_new = self.check_prescreenshot()
         if self.history_list:
             for history_data in self.history_list:
@@ -813,7 +840,8 @@ class Linear:
 
             self.time += 1
             self.clock['text'] = f"TIME:{str(self.time)}s" if self.time > -1 else 0
-
+            # this part run when there is a history_event uploaded
+            # this line check if a history event uploaded and it is the time to put the history on that specific function
             if self.history_list and self.time in self.history_times and self.time not in self.seen_history_events:
                 self.seen_history_events.append(int(self.time))
                 events_history = get_history_events(self.time, self.history_list)
@@ -827,6 +855,7 @@ class Linear:
                                     event['event'].var1) + "\n" + f"{event['event'].name_var2}:" + " " + str(
                                     event['event'].var2))
                             self.canvas.itemconfigure(connected_aspetc.drawn_text, text=connected_aspetc.text)
+
             x = (100 / (self.uniq_hexagon[-1].hex_aspects.outputs.x_sline + 50)) * self.time
             self.canvas.xview_moveto(x)
             self.canvas.after(self.speed_mode, self.loop_linear, directory_new)

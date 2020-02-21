@@ -161,7 +161,6 @@ class Start:
                                     clock=CLOCK, window_width=window_width,
                                     window_height=window_height, logger=logger, user_logger=user_logger,
                                     y_max=dynaFramCanvas.y_max, activation_color=0)
-            print(f" in y_max hastesh{dynaFramCanvas.y_max}")
         self.method.play_recursive()
 
     def play_linear_dynamic(self, dynamic_flag):
@@ -261,12 +260,15 @@ class Start:
         new_y = event.y_root - 50
         CLOCK.place(x=new_x, y=new_y)
 
-    def remover(self, ):
-        if show_text_flag.get():
-            dynaFramCanvas.reveal_texts()
+    def show_hide_hex_text(self):
+        dynaFramCanvas.show_hide_hex_text()
 
-        else:
-            dynaFramCanvas.remove_texts()
+    # def remover(self, ):
+    #     if show_text_flag.get():
+    #         dynaFramCanvas.reveal_texts()
+    #
+    #     else:
+    #         dynaFramCanvas.remove_texts()
 
 
 if __name__ == '__main__':
@@ -307,9 +309,13 @@ if __name__ == '__main__':
                                    window_height,
                                    x_coordinate,
                                    y_coordinate))
+    ## this is for show/hide hexagon text checkbox
+    show_text_flag = tk.BooleanVar()
+    show_text_flag.set(True)
 
     ## start FramCanvas
-    dynaFramCanvas = FramCanvas(root, window_width, window_height, canvas_width, canvas_height, logger, user_logger)
+    dynaFramCanvas = FramCanvas(root, window_width, window_height, canvas_width, canvas_height, logger, user_logger,
+                                show_text_flag)
     dynaFramCanvas.pack(side='right', fill="both", expand=True)
     popup = tk.Menu(root, tearoff=0)
     upload_icon = tk.PhotoImage(file="./Images/upload.png")
@@ -446,11 +452,10 @@ if __name__ == '__main__':
     tk.Checkbutton(root,
                    text="Show inactive\nfunctions",
                    variable=show_hide_flag).pack(side='top', anchor="w")
-    show_text_flag = tk.BooleanVar()
-    show_text_flag.set(True)
+
     tk.Checkbutton(root,
                    text="Show functions' text",
-                   variable=show_text_flag, command=start.remover).pack(side='top', anchor="w")
+                   variable=show_text_flag, command=start.show_hide_hex_text).pack(side='top', anchor="w")
     show_func_No = tk.BooleanVar()
     show_func_No.set("True")
 

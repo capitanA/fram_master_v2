@@ -18,7 +18,7 @@ import ipdb
 DIC_TIME = {1: 1000, 2: 800, 4: 600, 8: 400, 16: 250}
 
 
-def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
+def lcurve(id, canvas, x1, y1, x2, y2, linear=False, in_model=None, current_line_width=None):
     """
     getting the properties of the curves(straight line or Curve)
     x1:X_out
@@ -28,17 +28,22 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
     """
 
     if not linear:
+        if not in_model:
+
+            line_width = current_line_width
+        else:
+            line_width = None
+
         res = []
         arcs = get_arc_properties(x1, y1, x2, y2)
-
         if len(arcs) == 1:
             # it means that it is a starght line so the properties of arcs (bbox_x1,bbox_x2 etc)
             # are the coordinates of start point and end point of the line
             res.append(canvas.create_line(arcs[0].bbox_x1, arcs[0].bbox_y1, arcs[0].bbox_x2, arcs[0].bbox_y2,
-                                          tags=("model", f"hex_line{id}")))
-            # ipdb.set_trace()
+                                          tags=("model", f"hex_line{id}",f"line_{id}"), width=line_width))
             return res
         else:
+
 
             for arc in arcs:
                 # res.append(canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
@@ -46,7 +51,7 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
                 #                              style=tk.ARC))
                 t = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
-                                      style=tk.ARC, tags=("model", f"hex_line{id}"))
+                                      style=tk.ARC, tags=("model", f"hex_line{id}",f"line_{id}"), width=line_width)
                 canvas.tag_lower(t)
                 res.append(t)
 
@@ -64,7 +69,7 @@ def lcurve(id, canvas, x1, y1, x2, y2, linear=False):
             for arc in arcs:
                 r = canvas.create_arc(arc.bbox_x1, arc.bbox_y1, arc.bbox_x2, arc.bbox_y2, start=arc.start_ang,
                                       extent=arc.extend,
-                                      style=tk.ARC, tags=("model", f"hex_line{id}"))
+                                      style=tk.ARC, tags=("model", f"hex_line{id}",f"line_{id}"))
                 canvas.tag_lower(r)
                 res.append(r)
             return res
