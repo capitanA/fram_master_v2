@@ -761,3 +761,4 @@ class FramCanvas(tk.Frame):
         # self.canvas.yview_moveto(self.canvas.winfo_height())
         # self.canvas.grid(row=0, column=0)
         # self.tk.Fram.geometry(self.winfo_width, self.window_height, 0, 0)
+        ##### add some codes
