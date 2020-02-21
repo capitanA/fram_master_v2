@@ -719,11 +719,7 @@ class FramCanvas(tk.Frame):
             id = func_number
             x = float(function.attrib["x"])
             y = float(function.attrib["y"])
-            # x = self.canvas.canvasx(x)
-            # y = self.canvas.canvasy(y)
-            # print(func_number)
-            # print(x)
-            # print(y)
+
             aspects = Aspects(outputs=Aspect(o_name="O", x=x, out_text=out_text, y=y, r=r),
                               controls=Aspect(o_name="C", x=x, y=y, r=r),
                               times=Aspect(o_name="T", x=x, y=y, r=r),
