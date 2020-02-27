@@ -84,18 +84,18 @@ class SceneEvent:
         elif filetype == "xml":
             self.XML_upload(filename)
 
-        self.graph_compeleter(self.scene_events, framcanvas)
+        # self.graph_compeleter(self.scene_events, framcanvas)
 
         return self.scene_events
 
-    def graph_compeleter(self, scene_events, framcanvas):
-        graph = framcanvas.G
-        for scen_event in scene_events:
-            edge_attributes = edge_detector(scen_event.dstream_func_aspect)
-            graph.add_edge(scen_event.active_func, scen_event.dstream_coupled_func, I=edge_attributes[0],
-                           P=edge_attributes[1],
-                           T=edge_attributes[2],
-                           C=edge_attributes[3], R=edge_attributes[4], value=scen_event.active_func_output)
+    # def graph_compeleter(self, scene_events, framcanvas):
+    #     graph = framcanvas.G
+    #     for scen_event in scene_events:
+    #         edge_attributes = edge_detector(scen_event.dstream_func_aspect)
+    #         graph.add_edge(scen_event.active_func, scen_event.dstream_coupled_func, I=edge_attributes[0],
+    #                        P=edge_attributes[1],
+    #                        T=edge_attributes[2],
+    #                        C=edge_attributes[3], R=edge_attributes[4], value=scen_event.active_func_output)
 
     def reset(self):
         self.scene_events.clear()

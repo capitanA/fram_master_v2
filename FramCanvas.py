@@ -1,6 +1,3 @@
-# import math
-# import xml.etree.ElementTree as ET
-# from tkinter import filedialog
 from FramShapes import *
 from Helper import lcurve, take_o_name, get_connector, edge_detector
 from PIL import ImageGrab
@@ -9,8 +6,6 @@ import cv2
 import numpy as np
 from tkinter import messagebox
 import ipdb
-# from scipy.ndimage import zoom
-from tkinter import font
 
 
 class FramCanvas(tk.Frame):
@@ -79,6 +74,9 @@ class FramCanvas(tk.Frame):
         #### for saving the model new coordinates
         self.xml_root = None
         self.xfmv_path = None
+        self.currentscale = 0
+        self.firstscale = 0
+        self.scalefactor = 0
 
         ###for creating the graph
 
@@ -244,11 +242,14 @@ class FramCanvas(tk.Frame):
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
         true_x = self.canvas.canvasx(event.x_root)
         true_y = self.canvas.canvasy(event.y_root)
+
         if event.delta > 0:
             self.canvas.scale("all", true_x, true_y, 1.03, 1.03)
 
         elif event.delta < 0:
+
             self.canvas.scale("all", true_x, true_y, 0.97, 0.97)
+
         self.coord_update_hexagon(None, False)
         self.zoom_output_text(event.delta)
         self.zoom_hexagons_text()
@@ -265,28 +266,9 @@ class FramCanvas(tk.Frame):
         sweep = -math.pi * 2 / 6
         if self.hexagons:
             h_coords = []
-            # hex_XY=[]
-
-            # for hexagon in self.hexagons:
-            # h_coords.append(self.canvas.coords(hexagon.drawn))
-
-            # pass
-
-            # if update_XFMV and hexagon.id == int(current_tag.split("_")[1]):
-            #     pass
-            # self.xml_root[0][int(current_tag.split("_")[1])].attrib["x"]
-            # print(hexagon.hex_aspects.outputs.x_c)
-            # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("x", hexagon.x)
-            # self.xml_root.getroot()[0][int(current_tag.split("_")[1])].set("y", hexagon.y)
-            # # self.xml_root.write(self.xfmv_path.split("/")[-1])
-            # self.xml_root.write("Navigation.xfmv")
-            # self.xml_root[0][int(current_tag.split("_")[1])].attrib["y"] = hexagon.y
 
             for i, h in enumerate(self.hexagons):
                 h_coords.append(self.canvas.coords(h.drawn))
-
-                # h.x = (h_coords[i][0] + h_coords[i][6]) / 2
-                # h.y = (h_coords[i][0] + h_coords[i][6]) / 2
                 for attr, value in h.hex_aspects.__dict__.items():  # loop over [O, C, T, I, P, R]
                     if attr == "resources":
                         if value.y_sline > self.y_max:
@@ -295,73 +277,49 @@ class FramCanvas(tk.Frame):
                     """I add and sbstract some number to/from some aspects but I don't know why it should add to them to
                      make them correct it seems that self.canvas.coords doesn't return the correct coordinate of hexagons """
                     if value.o_name == "O":
-                        # h.x_c = h.x + 50 * math.cos(slice["O"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["O"] * sweep) / 6
+
                         h.hex_aspects.outputs.x_sline = (h_coords[i][0] + 50 * math.cos(
                             slice["O"] * sweep) / 6) - 4  # r=50
-                        # h.hex_aspects.outputs.x_sline = h.x_c + 50 * math.cos(slice["O"] * sweep) / 6  # r=50
                         h.hex_aspects.outputs.y_sline = h_coords[i][1] + 50 * math.sin(slice["O"] * sweep) / 6
-                        # h.hex_aspects.outputs.y_sline = h.y_c + 50 * math.sin(slice["O"] * sweep) / 6
 
                     elif value.o_name == "C":
-                        # h.x_c = h.x + 50 * math.cos(slice["C"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["C"] * sweep) / 6
                         h.hex_aspects.controls.x_sline = (
                                 h_coords[i][2] + 50 * math.cos(slice["C"] * sweep) / 6)  # r=50
-                        # h.hex_aspects.controls.x_sline = h.x_c + 50 * math.cos(slice["C"] * sweep) / 6  # r=50
                         h.hex_aspects.controls.y_sline = h_coords[i][3] + 50 * math.sin(slice["C"] * sweep) / 6 + 4
-                        # h.hex_aspects.controls.y_sline = h.y_c + 50 * math.sin(slice["C"] * sweep) / 6
                     elif value.o_name == "T":
-                        # h.x_c = h.x + 50 * math.cos(slice["T"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["T"] * sweep) / 6
                         h.hex_aspects.times.x_sline = (h_coords[i][4] + 50 * math.cos(
                             slice["T"] * sweep) / 6) + 4  # r=50
-                        # h.hex_aspects.times.x_sline = h.x_c + 50 * math.cos(slice["T"] * sweep) / 6  # r=50
                         h.hex_aspects.times.y_sline = h_coords[i][5] + 50 * math.sin(slice["T"] * sweep) / 6
-                        # h.hex_aspects.times.y_sline = h.y_c + 50 * math.sin(slice["T"] * sweep) / 6
                     elif value.o_name == "I":
-                        # h.x_c = h.x + 50 * math.cos(slice["I"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["I"] * sweep) / 6
                         h.hex_aspects.inputs.x_sline = (h_coords[i][6] + 50 * math.cos(
                             slice["I"] * sweep) / 6) + 4  # r=50
-                        # h.hex_aspects.inputs.x_sline = h.x_c + 50 * math.cos(slice["I"] * sweep) / 6  # r=50
                         h.hex_aspects.inputs.y_sline = h_coords[i][7] + 50 * math.sin(slice["I"] * sweep) / 6
-                        # h.hex_aspects.inputs.y_sline = h.y_c + 50 * math.sin(slice["I"] * sweep) / 6
                     elif value.o_name == "P":
-                        # h.x_c = h.x + 50 * math.cos(slice["P"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["P"] * sweep) / 6
                         h.hex_aspects.preconditions.x_sline = (h_coords[i][8] + 50 * math.cos(slice["P"] * sweep) / 6)
-                        # h.hex_aspects.preconditions.x_sline = h.x_c + 50 * math.cos(slice["P"] * sweep) / 6
                         h.hex_aspects.preconditions.y_sline = (h_coords[i][9] + 50 * math.sin(
                             slice["P"] * sweep) / 6) - 4
-                        # h.hex_aspects.preconditions.y_sline = h.y_c + 50 * math.sin(slice["P"] * sweep) / 6
                     elif value.o_name == "R":
-                        # h.x_c = h.x + 50 * math.cos(slice["R"] * sweep) / 6
-                        # h.y_c = h.y + 50 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.x_sline = (h_coords[i][10] + 50 * math.cos(slice["R"] * sweep) / 6) - 4
-                        # h.hex_aspects.resources.x_sline = h.x_c + 50 * math.cos(slice["R"] * sweep) / 6
                         h.hex_aspects.resources.y_sline = h_coords[i][11] + 50 * math.sin(slice["R"] * sweep) / 6
-                        # h.hex_aspects.resources.y_sline = h.y_c + 50 * math.sin(slice["R"] * sweep) / 6
                     ### this two lines are for saving the new coordinates of hexagons for saving
-                # if update_XFMV:
-                output_pos = self.canvas.bbox(h.hex_aspects.outputs.drawn)
 
-                # h.x = (h.hex_aspects.outputs.x_sline + h.hex_aspects.inputs.x_sline) / 2
+                self.currentscale = self.hexagons[0].hex_aspects.outputs.x_sline - self.hexagons[
+                    0].hex_aspects.inputs.x_sline
+
                 h.x = (h_coords[i][0] + h_coords[i][6]) / 2
-                # print(f"mokhtasate jadidesh{h.id} ine {h.x}")
-                # h.y = (h.hex_aspects.outputs.y_sline + h.hex_aspects.inputs.y_sline) / 2
                 h.y = (h_coords[i][1] + h_coords[i][7]) / 2
-                # print(f"mokhtasate jadidesh {h.id}ine {h.y}")
 
     def save_current_model(self):
+        self.scalefactor = self.currentscale / self.firstscale
+        factor = (2 - self.scalefactor)
+        self.canvas.scale("model", self.canvas_width_fram, self.canvas_height_fram, factor, factor)
+
+        self.coord_update_hexagon(None, None)
         for index, hex in enumerate(self.hexagons):
             self.xml_root.getroot()[0][index].set("x", str(hex.x))
             self.xml_root.getroot()[0][index].set("y", str(hex.y))
-            # print(hex.x,hex.y)
-            # self.canvas.create_oval(hex.x - 5, hex.y - 5, hex.x + 5, hex.y + 5, fill="white", outline="red")
             self.xml_root.write(self.xfmv_path)
         messagebox.showinfo(title="Info", message="The current model saved successfully ")
-        # print("==============================")
 
     def zoom_aspect_circles_text(self):
         """
@@ -583,17 +541,16 @@ class FramCanvas(tk.Frame):
         else:
             self.remove_texts()
 
-    def create_nodes(self, hexagon):
-
-        self.G.add_node(hexagon.id, name=hexagon.name)
-        for connected_aspect in hexagon.connected_aspects:
-            aspect_in = connected_aspect.aspect_in.o_name
-            edge_attributes = edge_detector(aspect_in)
-
-            self.G.add_edge(hexagon.id, connected_aspect.hex_in_num, I=edge_attributes[0], P=edge_attributes[1],
-                            T=edge_attributes[2],
-                            C=edge_attributes[3], R=edge_attributes[4],
-                            value=connected_aspect.text)
+    # def create_nodes(self, hexagon):
+    # self.G.add_node(hexagon.id, name=hexagon.name)
+    # for connected_aspect in hexagon.connected_aspects:
+    #     aspect_in = connected_aspect.aspect_in.o_name
+    #     edge_attributes = edge_detector(aspect_in)
+    #
+    #     self.G.add_edge(hexagon.id, connected_aspect.hex_in_num, I=edge_attributes[0], P=edge_attributes[1],
+    #                     T=edge_attributes[2],
+    #                     C=edge_attributes[3], R=edge_attributes[4],
+    #                     value=connected_aspect.text)
 
     def draw_model(self):
 
@@ -610,11 +567,18 @@ class FramCanvas(tk.Frame):
             if not hexagon.is_end:
                 self.draw_line(Id, hexagon.connected_aspects, in_model=True, current_line_width=1)
                 self.draw_line_text(Id, hexagon, drag_hex=False)
-            self.create_nodes(hexagon)
+            # self.create_nodes(hexagon)
+        # bbox = self.canvas.bbox("model")
 
+        # self.canvas.create_oval(self.canvas.canvasx(bbox[0]), self.canvas.canvasy(bbox[1]),
+        #                         self.canvas.canvasx(bbox[2]), self.canvas.canvasy(bbox[3]), outline="black")
         # pdb.set_trace()
+
+        # self.bbox_model = self.canvas.bbox("model")
+        self.firstscale = self.hexagons[0].hex_aspects.outputs.x_sline - self.hexagons[0].hex_aspects.inputs.x_sline
+
         self.add_tags()
-        return self.G
+        # return self.G
 
     def add_tags(self):
         # tag_list = []

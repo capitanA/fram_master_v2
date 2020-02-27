@@ -43,7 +43,6 @@ class Start:
         self.scene_event = None
         self.pre_screenshot_time = set()
         self.method = None
-        # self.speed_mode = None
 
     def history_data_upload(self, name, id):
         h_data = HistoryData(name, id, logger)
